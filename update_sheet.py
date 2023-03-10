@@ -1,8 +1,10 @@
 import os
 import openpyxl
+from openpyxl.utils.dataframe import dataframe_to_rows
 from bs4 import BeautifulSoup
 from requests_html import HTMLSession
 import requests
+import pandas as pd
 
 RANK = 1
 TEAM = 2
@@ -16,19 +18,24 @@ MAJOR = 2
 CHAMPIONSHIP_PRO = 3
 CHAMPIONSHIP_PREMIER = 4
 
+fileName = 'roundnet_tracking_2023.xlsx'
+
 
 def main():
 
-    # if os.path.exists('roundnet_tracking_2023.xlsx'):
-    #     wb = openpyxl.load_workbook('roundnet_tracking_2023.xlsx')
-    #     wb = removeSheets(wb)
-    # else:
-    #     wb = openpyxl.Workbook()
-    #     wb = removeSheets(wb)
+    if os.path.exists(fileName):
+        wb = openpyxl.load_workbook(fileName)
+        wb = removeSheets(wb)
+    else:
+        wb = openpyxl.Workbook()
+        wb = removeSheets(wb)
    
-    # tourney_path = os.path.join(os.getcwd(), "tournaments")
+    tourney_path = os.path.join(os.getcwd(), "tournaments")
     
-    # wb = createPlayersSheet(wb)
+    xlr = pd.ExcelWriter(fileName)
+    players_df = createPlayersSheet()
+    players_df.to_excel(xlr, 'Players')
+    xlr.save()
     # wb = createPlayersRankedSheet(wb)
     # wb = createTeamsSheet(wb)
     # wb = createTeamsRankedSheet(wb)
@@ -39,11 +46,11 @@ def main():
     # wb = writeTeamsSheet(wb)
     # wb = writeTeamsRankedSheet(wb)
            
-    # # path = os.path.join(os.getcwd(), "tournaments")
-    # # path = os.path.join(path, "2023")
+    # path = os.path.join(os.getcwd(), "tournaments")
+    # path = os.path.join(path, "2023")
 
-    # wb.save('roundnet_tracking_2023.xlsx')
-    scrapeWeb()
+    # wb.save(fileName)
+    # scrapeWeb()
 
 # Players - Name, Points
 # Teams - Name, Player Names, Points
@@ -450,15 +457,20 @@ def createPlayersRankedSheet(wb):
     return wb
 
 
-def createPlayersSheet(wb):
-    wb.create_sheet("Players")
-    sheet = wb['Players']
-    sheet.cell(row=1,column=1).value = "Player"
-    sheet.cell(row=1,column=2).value= "Total"
-    sheet.cell(row=1,column=3).value= "Result 1"
-    sheet.cell(row=1,column=4).value= "Result 2"
-    sheet.cell(row=1,column=5).value= "Result 3"
-    return wb
+def createPlayersSheet():
+    columns = ['Player', 'Total', 'Result 1', 'Result 2', 'Result 3']
+    data = [1, 2, 3, 4, 5]
+    df = pd.DataFrame(data, index=False, columns=columns)
+    return df
+
+
+def writeDataFrameToSheet(df, sheet):
+    rows = dataframe_to_rows(df)
+    for r_idx, row in enumerate(rows, 1):
+        for c_idx, value in enumerate(row, 1):
+            sheet.cell(row=r_idx, column=c_idx, value=value)
+
+    return sheet
 
 
 def scrapeFile(file):
@@ -491,11 +503,11 @@ def scrapeFile(file):
     return ranks, [teams, player_ones, player_twos]
 
 
-def scrapeWeb():    
-    url = "https://fwango.io/spikeball/tournaments?location=0&period=past&name=STS"
-    session = HTMLSession()
-    r = requests.get(url)
-    print(r)   
+# def scrapeWeb():    
+#     url = "https://fwango.io/spikeball/tournaments?location=0&period=past&name=STS"
+#     session = HTMLSession()
+#     r = requests.get(url)
+#     print(r)   
 
 
 if __name__ == "__main__":
