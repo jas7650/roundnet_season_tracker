@@ -1,8 +1,8 @@
 import os
 import openpyxl
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+from requests_html import HTMLSession
+import requests
 
 RANK = 1
 TEAM = 2
@@ -19,31 +19,31 @@ CHAMPIONSHIP_PREMIER = 4
 
 def main():
 
-    if os.path.exists('roundnet_tracking_2023.xlsx'):
-        wb = openpyxl.load_workbook('roundnet_tracking_2023.xlsx')
-        wb = removeSheets(wb)
-    else:
-        wb = openpyxl.Workbook()
-        wb = removeSheets(wb)
+    # if os.path.exists('roundnet_tracking_2023.xlsx'):
+    #     wb = openpyxl.load_workbook('roundnet_tracking_2023.xlsx')
+    #     wb = removeSheets(wb)
+    # else:
+    #     wb = openpyxl.Workbook()
+    #     wb = removeSheets(wb)
    
-    tourney_path = os.path.join(os.getcwd(), "tournaments")
+    # tourney_path = os.path.join(os.getcwd(), "tournaments")
     
-    wb = createPlayersSheet(wb)
-    wb = createPlayersRankedSheet(wb)
-    wb = createTeamsSheet(wb)
-    wb = createTeamsRankedSheet(wb)
-    wb = readYearDirectory(wb, tourney_path, 2022)  
-    wb = readYearDirectory(wb, tourney_path, 2023)
-    wb = updatePlayerTotals(wb)
-    wb = writePlayersRankedSheet(wb)
-    wb = writeTeamsSheet(wb)
-    wb = writeTeamsRankedSheet(wb)
+    # wb = createPlayersSheet(wb)
+    # wb = createPlayersRankedSheet(wb)
+    # wb = createTeamsSheet(wb)
+    # wb = createTeamsRankedSheet(wb)
+    # wb = readYearDirectory(wb, tourney_path, 2022)  
+    # wb = readYearDirectory(wb, tourney_path, 2023)
+    # wb = updatePlayerTotals(wb)
+    # wb = writePlayersRankedSheet(wb)
+    # wb = writeTeamsSheet(wb)
+    # wb = writeTeamsRankedSheet(wb)
            
-    # path = os.path.join(os.getcwd(), "tournaments")
-    # path = os.path.join(path, "2023")
+    # # path = os.path.join(os.getcwd(), "tournaments")
+    # # path = os.path.join(path, "2023")
 
-    wb.save('roundnet_tracking_2023.xlsx')
-    # scrapeWeb()
+    # wb.save('roundnet_tracking_2023.xlsx')
+    scrapeWeb()
 
 # Players - Name, Points
 # Teams - Name, Player Names, Points
@@ -491,14 +491,11 @@ def scrapeFile(file):
     return ranks, [teams, player_ones, player_twos]
 
 
-# def scrapeWeb():
-#     url = "https://fwango.io/dashboard"
-#     url = "https://www.geeksforgeeks.org/"
-#     driver = webdriver.Chrome()
-
-#     driver.get(url)
-#     element = driver.find_element(By.ID, "gsc-i-id1")
-#     element.send_keys("Arrays")
+def scrapeWeb():    
+    url = "https://fwango.io/spikeball/tournaments?location=0&period=past&name=STS"
+    session = HTMLSession()
+    r = requests.get(url)
+    print(r)   
 
 
 if __name__ == "__main__":
