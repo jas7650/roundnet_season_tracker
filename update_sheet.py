@@ -1,4 +1,5 @@
 import os
+import sys
 import openpyxl
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -73,7 +74,7 @@ def readDirectory(wb, path, TOURNAMENT_TYPE):
                 location = os.path.splitext(os.path.basename(file))[0]
                 location = location.replace("_", " ")
                 print("{}".format(location))
-                ideal_points = getPointsArray(wb, 2022, TOURNAMENT_TYPE)
+                ideal_points = getPointsArray(2022, TOURNAMENT_TYPE)
                 old_points = getActualPoints(ranks, ideal_points)
                 points = []
                 for value in old_points:
@@ -182,7 +183,12 @@ def getPlayerPoints(player, players, points):
     return 0
 
 
-def getPointsArray(wb, year, TOURNAMENT_TYPE):
+def getPointsArray(year, TOURNAMENT_TYPE):
+    if os.path.exists('point_distribution.xlsx'):
+        wb = openpyxl.load_workbook('point_distribution.xlsx')
+    else:
+        print("Point distrubution excel file must exist")
+        sys.exit(0)
     points = []
     if (year == 2022):
         sheet = wb['Point Distribution 2022']
