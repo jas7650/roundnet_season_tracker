@@ -1,0 +1,3 @@
+[submodule "tournaments"]
+	path = tournaments
+	url = git@github.com:jas7650/tournaments.git
