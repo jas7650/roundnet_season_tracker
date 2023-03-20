@@ -15,6 +15,9 @@ MAJOR = 2
 CHAMPIONSHIP_PRO = 3
 CHAMPIONSHIP_PREMIER = 4
 
+PLAYER_COL = 1
+POINTS_COL = 2
+
 
 def main():
 
@@ -80,7 +83,7 @@ def readDirectory(wb, path, TOURNAMENT_TYPE):
 
 def updatePlayerTotals(wb):
     sheet = getSheetByName(wb, 'Players')
-    players = getPlayers(sheet)
+    players = getColumnData(sheet, PLAYER_COL)
     locations = getExistingLocations(sheet)
     for i in range(len(players)):
         points = [0, 0, 0]
@@ -171,7 +174,6 @@ def getPlayerPoints(player, players, points):
 def getPointsArray(year, TOURNAMENT_TYPE):
     wb = getWorkBook('point_distribution.xlsx')
     
-    points = []
     if (year == 2022):
         sheet = getSheetByName(wb, 'Point Distribution 2022')
     else:
@@ -180,8 +182,7 @@ def getPointsArray(year, TOURNAMENT_TYPE):
         column = CHAMPIONSHIP_PRO + 2 
     else:
         column = TOURNAMENT_TYPE + 2
-    for row in range(2,sheet.max_row+1):
-        points.append(getCellValue(row, column, sheet))
+    points = getColumnData(sheet, column)
     return points
 
 
@@ -294,24 +295,6 @@ def getAllTeams(wb):
     return teams
 
 
-def getPlayers(sheet):
-    players = []
-    for row in range(2,sheet.max_row+1):
-        for column in "A":
-            cell_name = "{}{}".format(column, row)
-            players.append(sheet[cell_name].value)
-    return players
-
-
-def getPoints(sheet):
-    points = []
-    for row in range(2,sheet.max_row+1):
-        for column in "B":
-            cell_name = "{}{}".format(column, row)
-            points.append(sheet[cell_name].value)
-    return points
-
-
 def writePlayerSheet(wb, teams, points, location):
     sheet = getSheetByName(wb, 'Players')
     column = getColumn(sheet, location)
@@ -321,7 +304,7 @@ def writePlayerSheet(wb, teams, points, location):
     for playernum in range(2):
         i = 1
         while (i <= len(teams[playernum+1])):
-            players = getPlayers(sheet)
+            players = getColumnData(sheet, PLAYER_COL)
             player_row = contains(players, teams[playernum+1][i-1])
             if (player_row != -1):
                 row = player_row+2
@@ -366,7 +349,7 @@ def writeTournamentSheet(wb, ranks, teams, points, sheetname):
         offset = 0
     else:
         sheet = getSheetByName(wb, sheetname)
-        offset = len(getPlayers(sheet))
+        offset = len(getColumnData(sheet, PLAYER_COL))
 
     i = 1
     sheet = writeToCell(1, RANK, sheet, 'Rank')
@@ -387,8 +370,8 @@ def writeTournamentSheet(wb, ranks, teams, points, sheetname):
 def writePlayersRankedSheet(wb):
     players_sheet = getSheetByName(wb, 'Players')
     sheet = getSheetByName(wb, 'Players Ranked')
-    players = getPlayers(players_sheet)
-    points = getPoints(players_sheet)
+    players = getColumnData(players_sheet, PLAYER_COL)
+    points = getColumnData(players_sheet, POINTS_COL)
     players, points = sortPlayers(players, points)
     numPlayers = len(players)
     for i in range(numPlayers):
@@ -401,8 +384,8 @@ def writeTeamsRankedSheet(wb):
     sheet = getSheetByName(wb, 'Teams Ranked')
     players_sheet = getSheetByName(wb, 'Players')
     teams = getAllTeams(wb)
-    players = getPlayers(players_sheet)
-    points = getPoints(players_sheet)
+    players = getColumnData(players_sheet, PLAYER_COL)
+    points = getColumnData(players_sheet, POINTS_COL)
 
     teams, points = sortTeams(teams, players, points)
     numTeams = len(teams)

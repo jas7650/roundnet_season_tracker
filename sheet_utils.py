@@ -15,6 +15,20 @@ def saveWorkBook(wb, filename):
     wb.save(filename)
 
 
+def getColumnData(sheet, column):
+    data = []
+    for row in range(2,sheet.max_row+1):
+        data.append(getCellValue(row, column, sheet))
+    return data
+
+
+def getRowData(sheet, row):
+    data = []
+    for column in range(2,sheet.max_column+1):
+        data.append(getCellValue(row, column, sheet))
+    return data
+
+
 def getSheetByName(wb, sheetname):
     if sheetExists(wb, sheetname):
         return wb[sheetname]
