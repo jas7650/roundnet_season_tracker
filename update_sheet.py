@@ -72,7 +72,7 @@ def readDirectory(wb, path, TOURNAMENT_TYPE):
                 points = []
                 for value in old_points:
                     points.append(value/2.0)
-                writeTournamentSheet(wb, ranks, teams, points, location+" 2022")
+                writeTournamentSheet(wb, ranks, teams, points, f'{location} 2022')
                 writePlayerSheet(wb, teams, points, location)
     return wb
 
