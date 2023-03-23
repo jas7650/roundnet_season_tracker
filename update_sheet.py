@@ -1,4 +1,3 @@
-import sys
 from scrape_utils import *
 from sheet_utils import *
 from path_utils import *
