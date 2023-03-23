@@ -48,7 +48,7 @@ def main():
 
 
 def readYearDirectory(wb, tourney_path, year):
-    print("Year: {}".format(year))
+    print(f'Year: {year}')
     year_path = os.path.join(tourney_path, str(year))
     if (os.path.exists(year_path)):
         wb = readDirectory(wb, os.path.join(year_path, os.path.join("championship", "pro")), CHAMPIONSHIP_PRO)
@@ -70,7 +70,7 @@ def readDirectory(wb, path, TOURNAMENT_TYPE):
                         ranks[i] = ranks[i]+16
                 location = os.path.splitext(os.path.basename(file))[0]
                 location = location.replace("_", " ")
-                print("{}".format(location))
+                print(location)
                 ideal_points = getPointsArray(2022, TOURNAMENT_TYPE)
                 old_points = getActualPoints(ranks, ideal_points)
                 points = []

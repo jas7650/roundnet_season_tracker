@@ -12,6 +12,7 @@ def getWorkBook(filename):
 
 
 def saveWorkBook(wb, filename):
+    print(f'Saving results to: {filename}')
     wb.save(filename)
 
 
@@ -32,7 +33,7 @@ def getRowData(sheet, row):
 def getSheetByName(wb, sheetname):
     if sheetExists(wb, sheetname):
         return wb[sheetname]
-    print("{} does not exist".format(sheetname))
+    print(f'{sheetname} does not exist')
     sys.exit(0)
 
 
