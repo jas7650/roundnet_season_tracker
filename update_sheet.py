@@ -1,7 +1,7 @@
-import os
 import sys
 from scrape_utils import *
 from sheet_utils import *
+from path_utils import *
 
 RANK = 1
 TEAM = 2
@@ -24,7 +24,7 @@ def main():
     wb = getWorkBook('roundnet_tracking_2023.xlsx')
     wb = removeSheets(wb)
    
-    tourney_path = os.path.join(os.getcwd(), "tournaments")
+    tourney_path = joinPath(getCurrentLocation(), "tournaments")
     
     wb = createPlayersSheet(wb)
     wb = createPlayersRankedSheet(wb)
@@ -36,9 +36,6 @@ def main():
     wb = writePlayersRankedSheet(wb)
     wb = writeTeamsSheet(wb)
     wb = writeTeamsRankedSheet(wb)
-           
-    # path = os.path.join(os.getcwd(), "tournaments")
-    # path = os.path.join(path, "2023")
 
     saveWorkBook(wb, 'roundnet_tracking_2023.xlsx')
     # scrapeWeb()
@@ -49,26 +46,26 @@ def main():
 
 def readYearDirectory(wb, tourney_path, year):
     print(f'Year: {year}')
-    year_path = os.path.join(tourney_path, str(year))
-    if (os.path.exists(year_path)):
-        wb = readDirectory(wb, os.path.join(year_path, os.path.join("championship", "pro")), CHAMPIONSHIP_PRO)
-        wb = readDirectory(wb, os.path.join(year_path, "major"), MAJOR)
-        wb = readDirectory(wb, os.path.join(year_path, os.path.join("championship", "premier")), CHAMPIONSHIP_PREMIER)
-        wb = readDirectory(wb, os.path.join(year_path, "challenger"), CHALLENGER)
-        wb = readDirectory(wb, os.path.join(year_path, "contender"), CONTENDER)
+    year_path = joinPath(tourney_path, str(year))
+    if (pathExists(year_path)):
+        wb = readDirectory(wb, joinPath(year_path, joinPath("championship", "pro")), CHAMPIONSHIP_PRO)
+        wb = readDirectory(wb, joinPath(year_path, "major"), MAJOR)
+        wb = readDirectory(wb, joinPath(year_path, joinPath("championship", "premier")), CHAMPIONSHIP_PREMIER)
+        wb = readDirectory(wb, joinPath(year_path, "challenger"), CHALLENGER)
+        wb = readDirectory(wb, joinPath(year_path, "contender"), CONTENDER)
     return wb
 
 
 def readDirectory(wb, path, TOURNAMENT_TYPE):
-    if (os.path.exists(path)):
-        for filename in os.listdir(path):
-            file = os.path.join(path, filename)
-            if os.path.isfile(file):
+    if (pathExists(path)):
+        for filename in listDir(path):
+            file = joinPath(path, filename)
+            if isFile(file):
                 ranks, teams = scrapeFile(file)
                 if (TOURNAMENT_TYPE == CHAMPIONSHIP_PREMIER):
                     for i in range(len(ranks)):
                         ranks[i] = ranks[i]+16
-                location = os.path.splitext(os.path.basename(file))[0]
+                location = splitText(getBaseName(file))[0]
                 location = location.replace("_", " ")
                 print(location)
                 ideal_points = getPointsArray(2022, TOURNAMENT_TYPE)
@@ -204,11 +201,11 @@ def getLocation(file):
         text = str(file)[index+1:]
         index = text.find("_")
         text = text[index+1:]
-        text = os.path.splitext(text)[0]
+        text = splitText(text)[0]
         return text
     index = str(file).find("_")
     text = str(file)[index+1:]
-    text = os.path.splitext(text)[0]
+    text = splitText(text)[0]
     return text
 
 
