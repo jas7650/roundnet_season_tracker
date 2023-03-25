@@ -1,6 +1,7 @@
 from scrape_utils import *
 from sheet_utils import *
 from path_utils import *
+from Player import Player
 
 RANK = 1
 TEAM = 2
@@ -37,10 +38,6 @@ def main():
     wb = writeTeamsRankedSheet(wb)
 
     saveWorkBook(wb, 'roundnet_tracking_2023.xlsx')
-    # scrapeWeb()
-
-# Players - Name, Points
-# Teams - Name, Player Names, Points
 
 
 def readYearDirectory(wb, tourney_path, year):
@@ -72,9 +69,22 @@ def readDirectory(wb, path, TOURNAMENT_TYPE):
                 points = []
                 for value in old_points:
                     points.append(value/2.0)
+                players = addPlayers(ranks, teams, points)
+                print("Players")
+                for player in players:
+                    player.printPlayer()
                 writeTournamentSheet(wb, ranks, teams, points, f'{location} 2022')
                 writePlayerSheet(wb, teams, points, location)
     return wb
+
+
+def addPlayers(ranks, teams, points):
+    players = []
+    for i in range(len(points)):
+        players.append(Player(teams[1][i]))
+        players.append(Player(teams[2][i]))
+
+    return players
 
 
 def updatePlayerTotals(wb):
