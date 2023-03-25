@@ -19,7 +19,7 @@ class Player(object):
 
     def addResult(self, amount):
         index = 0
-        while amount < self.results[index]:
+        while index < len(self.results) and amount < self.results[index]:
             index += 1
         self.results.insert(index, amount)
 
@@ -46,3 +46,4 @@ class Player(object):
         print(f'Teams: {self.teams}')
         print(f'Tournaments: {self.tournaments}')
         print(f'Results: {self.results}')
+        print()

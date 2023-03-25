@@ -69,7 +69,7 @@ def readDirectory(wb, path, TOURNAMENT_TYPE):
                 points = []
                 for value in old_points:
                     points.append(value/2.0)
-                players = addPlayers(ranks, teams, points)
+                players = addPlayers(teams, points, location)
                 print("Players")
                 for player in players:
                     player.printPlayer()
@@ -78,11 +78,19 @@ def readDirectory(wb, path, TOURNAMENT_TYPE):
     return wb
 
 
-def addPlayers(ranks, teams, points):
+def addPlayers(teams, points, location):
     players = []
     for i in range(len(points)):
-        players.append(Player(teams[1][i]))
-        players.append(Player(teams[2][i]))
+        player_one = Player(teams[1][i])
+        player_one.addTeam(teams[0][i])
+        player_one.addTournament(location)
+        player_one.addResult(points[i])
+        player_two = Player(teams[2][i])
+        player_two.addTeam(teams[0][i])
+        player_two.addTournament(location)
+        player_two.addResult(points[i])
+        players.append(player_one)
+        players.append(player_two)
 
     return players
 
