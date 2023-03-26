@@ -7,7 +7,7 @@ class Player(object):
         self.name = name
         self.tournaments = []
         self.teams = []
-        self.results = []
+        self.points = []
 
     def addTournament(self, tournament):
         if tournament not in self.tournaments:
@@ -19,9 +19,9 @@ class Player(object):
 
     def addResult(self, amount):
         index = 0
-        while index < len(self.results) and amount < self.results[index]:
+        while index < len(self.points) and amount < self.points[index]:
             index += 1
-        self.results.insert(index, amount)
+        self.points.insert(index, amount)
 
     def getName(self):
         return self.name
@@ -33,7 +33,7 @@ class Player(object):
         return self.teams
     
     def getResults(self):
-        return self.results
+        return self.points
 
     def equals(self, player):
         if self.name == player.name:
@@ -45,5 +45,5 @@ class Player(object):
         print(f'Name: {self.name}')
         print(f'Teams: {self.teams}')
         print(f'Tournaments: {self.tournaments}')
-        print(f'Results: {self.results}')
+        print(f'Points: {self.points}')
         print()
