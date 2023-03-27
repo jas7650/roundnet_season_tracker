@@ -12,15 +12,32 @@ def getWorkBook(filename):
 
 
 def writeToSheet(data, wb, sheetName):
-    sheet = wb.create_sheet(sheetName)
-    for col in range(len(data)):
-        for row in range(len(data[0])):
-            sheet.cell(row=row+1, column=col+1).value = data[col][row]
+    if (sheetExists(wb, sheetName)): 
+        sheet = getSheetByName(wb, sheetName)
+        for col in range(len(data)):
+            for row in range(len(data[0])):
+                if (row == 0):
+                    continue
+                sheet.cell(row=row+17, column=col+1).value = data[col][row]
+    else:
+        sheet = wb.create_sheet(sheetName)
+        for col in range(len(data)):
+            for row in range(len(data[0])):
+                sheet.cell(row=row+1, column=col+1).value = data[col][row]
+    return wb
+
+
+def writeToColumn(data, wb, sheetName, col):
+    if (sheetExists(wb, sheetName)): 
+        sheet = getSheetByName(wb, sheetName)
+    else:
+        sheet = wb.create_sheet(sheetName)
+    for row in range(len(data)):
+        sheet.cell(row=row+1, column=col+1).value = data[row]
     return wb
 
 
 def saveWorkBook(wb, filename):
-    print(f'Saving results to: {filename}')
     wb.save(filename)
 
 
