@@ -3,18 +3,12 @@ from Player import Player
 
 class Team(object):
 
-    def __init__(self, teamName, player_one, player_two):
+    def __init__(self, teamName : str, player_one: Player, player_two: Player):
         self.teamName = teamName
         self.players = [player_one, player_two]
-        self.tournaments = []
-        self.teams = []
         self.points = []
 
-    def addTournament(self, tournament):
-        if tournament not in self.tournaments:
-            self.tournaments.append(tournament)
-
-    def addResult(self, amount):
+    def addResult(self, amount : int):
         index = 0
         while index < len(self.points) and amount < self.points[index]:
             index += 1
@@ -22,28 +16,30 @@ class Team(object):
 
     def getTeamName(self):
         return self.teamName
-
-    def getTournaments(self):
-        return self.tournaments
     
     def getResults(self):
         return self.points
     
     def getPlayers(self):
         return self.players
-
-    def equals(self, team):
-        if self.teamName != team.teamName:
-            return False
-        if team.getPlayers()[0] not in self.players:
-            return False
-        if team.getPlayers()[1] not in self.players:
-            return False
-        return True
+    
+    def getPlayerOne(self):
+        return self.players[0]
+    
+    def getPlayerTwo(self):
+        return self.players[1]
         
     def printTeam(self):
-        print(f'Name: {self.teamName}')
-        print(f'Players: {self.players[0]} and {self.players[1]}')
-        print(f'Tournaments: {self.tournaments}')
+        print(f'Team Name: {self.teamName}')
+        print(f'Players: {self.getPlayerOne().getName()} and {self.getPlayerTwo().getName()}')
         print(f'Points: {self.points}')
         print()
+
+def equals(team1 : Team, team2 : Team):
+    if team1.teamName != team2.teamName:
+        return False
+    if team1.getPlayers()[0] not in team2.players:
+        return False
+    if team1.getPlayers()[1] not in team2.players:
+        return False
+    return True

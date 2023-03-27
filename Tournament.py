@@ -1,57 +1,42 @@
-from Player import Player
 from Team import Team
-
+from Player import Player
+from Result import Result
 
 class Tournament(object):
 
-    def __init__(self, location, tournamentType):
+    def __init__(self, location : str, tournamentType : int):
         self.location = location
         self.tournamentType = tournamentType
-        self.teams = []
         self.results = []
 
-    def addTournament(self, tournament):
-        if tournament not in self.tournaments:
-            self.tournaments.append(tournament)
+    def addResult(self, rank : int, team : Team, points : int):
+        self.results.append(Result(rank, team, points))
 
-    def addResult(self, amount):
-        index = 0
-        while index < len(self.points) and amount < self.points[index]:
-            index += 1
-        self.points.insert(index, amount)
-
-    def addTeam(self, team):
-        for team_check in self.teams:
-            if team.equals(team_check):
-                return
-        self.teams.append(team)
-
-    def getTeamName(self):
-        return self.teamName
-
-    def getTournaments(self):
-        return self.tournaments
-    
     def getResults(self):
-        return self.points
+        return self.results
     
-    def getPlayers(self):
-        return self.players
-
-    def equals(self, team):
-        if self.teamName != team.teamName:
-            return False
-        if team.getPlayers()[0] not in self.players:
-            return False
-        if team.getPlayers()[1] not in self.players:
-            return False
-        return True
+    def getLocation(self):
+        return self.location
+    
+    def getTournamentType(self):
+        return self.tournamentType
         
     def printTournament(self):
-        print(f'Location: {self.location}')
-        print(f'Tournament Type: {self.tournamentType}')
+        print(f'Location: {self.location}\n')
+        print(f'Tournament Type: {self.tournamentType}\n')
         print("Teams:")
         for team in self.teams:
             team.printTeam()
-        print(f'Results: {self.results}')
         print()
+        print("Players:")
+        for player in self.players:
+            player.printPlayer()
+        print()
+
+
+def equals(tournament1 : Tournament, tournament2 : Tournament):
+    if tournament1.location != tournament2.getLocation():
+        return False
+    if tournament1.tournamentType != tournament2.getTournamentType():
+        return False
+    return True
