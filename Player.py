@@ -1,27 +1,48 @@
-
+from Result import Result
 
 class Player(object):
 
     def __init__(self, name : str):
         self.name = name
-        self.points = []
+        self.results = []
 
-    def addResult(self, amount : int):
+    def addResult(self, rank : int, amount : int, location : str):
         index = 0
-        while index < len(self.points) and amount < self.points[index]:
+        while index < len(self.results) and amount < self.results[index].getPoints():
             index += 1
-        self.points.insert(index, amount)
+        self.results.insert(index, Result(rank, amount, location))
 
     def getName(self):
         return self.name
     
     def getResults(self):
-        return self.points
+        return self.getResultOne() + self.getResultTwo() + self.getResultThree()
+    
+    def getResultOne(self):
+        if len(self.results) < 1:
+            return 0
+        return self.results[0].getPoints()
+    
+    def getResultTwo(self):
+        if len(self.results) < 2:
+            return 0
+        return self.results[1].getPoints()
+    
+    def getResultThree(self):
+        if len(self.results) < 3:
+            return 0
+        return self.results[2].getPoints()
 
     def printPlayer(self):
         print(f'Name: {self.name}')
-        print(f'Points: {self.points}')
+        print(f'Results: {self.results}')
         print()
+
+    def getResultByLocation(self, location):
+        for result in self.results:
+            if result.getLocation() == location:
+                return result.getPoints()
+        return 0
 
 
 def equals(player1 : Player, player2 : Player):

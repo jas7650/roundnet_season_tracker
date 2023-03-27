@@ -1,6 +1,5 @@
 from Team import Team
-from Player import Player
-from Result import Result
+from TournamentResult import TournamentResult
 
 class Tournament(object):
 
@@ -9,8 +8,8 @@ class Tournament(object):
         self.tournamentType = tournamentType
         self.results = []
 
-    def addResult(self, rank : int, team : Team, points : int):
-        self.results.append(Result(rank, team, points))
+    def addResult(self, rank : int, points : int, team : Team):
+        self.results.append(TournamentResult(rank, points, team))
 
     def getResults(self):
         return self.results
@@ -24,19 +23,10 @@ class Tournament(object):
     def printTournament(self):
         print(f'Location: {self.location}\n')
         print(f'Tournament Type: {self.tournamentType}\n')
-        print("Teams:")
-        for team in self.teams:
-            team.printTeam()
-        print()
-        print("Players:")
-        for player in self.players:
-            player.printPlayer()
         print()
 
 
 def equals(tournament1 : Tournament, tournament2 : Tournament):
-    if tournament1.location != tournament2.getLocation():
-        return False
-    if tournament1.tournamentType != tournament2.getTournamentType():
+    if tournament1.getLocation() != tournament2.getLocation():
         return False
     return True

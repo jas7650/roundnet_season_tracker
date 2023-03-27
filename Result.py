@@ -1,17 +1,16 @@
-from Team import Team
 
 class Result(object):
 
-    def __init__(self, rank : int, team : Team, points : int):
+    def __init__(self, rank : int, points : int, location : str):
         self.rank = rank
-        self.team = team
         self.points = points
+        self.location = location
 
     def getRank(self):
         return self.rank
     
-    def getTeam(self):
-        return self.team
-    
     def getPoints(self):
         return self.points
+    
+    def getLocation(self):
+        return self.location
