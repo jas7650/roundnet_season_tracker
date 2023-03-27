@@ -36,6 +36,12 @@ class Team(object):
             return 0
         return self.results[2].getPoints()
     
+    def getResultByLocation(self, location):
+        for result in self.results:
+            if result.getLocation() == location:
+                return result.getPoints()
+        return 0
+    
     def getPlayerNames(self):
         return [self.getPlayerOne().getName(), self.getPlayerTwo().getName()]
     

@@ -136,6 +136,12 @@ def createTournamentSheets(filename : str):
         data = [ranks, teamNames, player_ones, player_twos, points]
 
         wb = writeToSheet(data, wb, tournament.getLocation())
+        for i in range(len(tournaments_list)):
+            tournament = tournaments_list[i]
+            tournament_data = [tournament.getLocation()]
+            for team in teams_list:
+                tournament_data.append(team.getResultByLocation(tournament.getLocation()))
+            wb = writeToColumn(tournament_data, wb, 'Teams', i+7)
     saveWorkBook(wb, filename)
 
 

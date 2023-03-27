@@ -32,17 +32,17 @@ class Player(object):
         if len(self.results) < 3:
             return 0
         return self.results[2].getPoints()
-
-    def printPlayer(self):
-        print(f'Name: {self.name}')
-        print(f'Results: {self.results}')
-        print()
-
+    
     def getResultByLocation(self, location):
         for result in self.results:
             if result.getLocation() == location:
                 return result.getPoints()
         return 0
+
+    def printPlayer(self):
+        print(f'Name: {self.name}')
+        print(f'Results: {self.results}')
+        print()
 
 
 def equals(player1 : Player, player2 : Player):
