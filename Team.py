@@ -18,7 +18,7 @@ class Team(object):
     def getTeamName(self):
         return self.teamName
     
-    def getResults(self):
+    def getPoints(self):
         return self.getResultOne() + self.getResultTwo() + self.getResultThree()
     
     def getResultOne(self):

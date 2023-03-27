@@ -15,7 +15,7 @@ class Player(object):
     def getName(self):
         return self.name
     
-    def getResults(self):
+    def getPoints(self):
         return self.getResultOne() + self.getResultTwo() + self.getResultThree()
     
     def getResultOne(self):

@@ -18,12 +18,12 @@ def writeToSheet(data, wb, sheetName):
             for row in range(len(data[0])):
                 if (row == 0):
                     continue
-                sheet.cell(row=row+17, column=col+1).value = data[col][row]
+                writeToCell(row+17, col+1, sheet, data[col][row])
     else:
-        sheet = wb.create_sheet(sheetName)
+        sheet = createSheet(wb, sheetName)
         for col in range(len(data)):
             for row in range(len(data[0])):
-                sheet.cell(row=row+1, column=col+1).value = data[col][row]
+                writeToCell(row+1, col+1, sheet, data[col][row])
     return wb
 
 
@@ -31,9 +31,9 @@ def writeToColumn(data, wb, sheetName, col):
     if (sheetExists(wb, sheetName)): 
         sheet = getSheetByName(wb, sheetName)
     else:
-        sheet = wb.create_sheet(sheetName)
+        sheet = createSheet(wb, sheetName)
     for row in range(len(data)):
-        sheet.cell(row=row+1, column=col+1).value = data[row]
+        writeToCell(row+1, col+1, sheet, data[row])
     return wb
 
 
@@ -89,39 +89,3 @@ def getCellValue(row, col, sheet):
 
 def createSheet(wb, sheetName):
     return wb.create_sheet(sheetName)
-
-
-def createTeamsRankedSheet(wb):
-    sheet = createSheet(wb, "Teams Ranked")
-    sheet = writeToCell(1, 1, sheet, 'Team Name')
-    sheet = writeToCell(1, 2, sheet, 'Player One')
-    sheet = writeToCell(1, 3, sheet, 'Player Two')
-    sheet = writeToCell(1, 4, sheet, 'Points')
-    return wb
-
-
-def createTeamsSheet(wb):
-    sheet = createSheet(wb, "Teams")
-    sheet = writeToCell(1, 1, sheet, 'Team Name')
-    sheet = writeToCell(1, 2, sheet, 'Player One')
-    sheet = writeToCell(1, 3, sheet, 'Player Two')
-    sheet = writeToCell(1, 4, sheet, 'Total Points')
-    return wb
-
-
-def createPlayersRankedSheet(wb):
-    sheet = createSheet(wb, "Players Ranked")
-    sheet = writeToCell(1, 1, sheet, 'Players')
-    sheet = writeToCell(1, 2, sheet, 'Points')
-    return wb
-
-
-def createPlayersSheet(wb):
-    sheet = createSheet(wb, "Players")
-    sheet = wb['Players']
-    sheet = writeToCell(1, 1, sheet, 'Player')
-    sheet = writeToCell(1, 2, sheet, 'Total')
-    sheet = writeToCell(1, 3, sheet, 'Result 1')
-    sheet = writeToCell(1, 4, sheet, 'Result 2')
-    sheet = writeToCell(1, 5, sheet, 'Result 3')
-    return wb

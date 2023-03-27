@@ -40,6 +40,7 @@ def main():
     filename = 'roundnet_season_tracker.xlsx'
 
     createPlayersSheet(filename)
+    createPlayersRankedSheet(filename)
     createTeamsSheet(filename)
     createTournamentSheets(filename)
 
@@ -155,7 +156,7 @@ def createPlayersSheet(filename : str):
     result_threes = ['Result 3']
     for player in players_list:
         player_names.append(player.getName())
-        points.append(player.getResults())
+        points.append(player.getPoints())
         result_ones.append(player.getResultOne())
         result_twos.append(player.getResultTwo())
         result_threes.append(player.getResultThree())            
@@ -172,6 +173,29 @@ def createPlayersSheet(filename : str):
     saveWorkBook(wb, filename)
 
 
+def createPlayersRankedSheet(filename):
+    wb = getWorkBook(filename)
+    player_names = ['Player']
+    points = ['Points']
+    copy_list = players_list
+    sorted_list = []
+    for i in range(len(players_list)):
+        largest_player = copy_list[0]
+        for player in copy_list:
+            if player.getPoints() > largest_player.getPoints():
+                largest_player = player
+        sorted_list.append(largest_player)
+        copy_list.remove(largest_player)
+
+    for player in sorted_list:
+        player_names.append(player.getName())
+        points.append(player.getPoints())          
+
+    data = [player_names, points]
+    wb = writeToSheet(data, wb, 'Players Ranked')
+    saveWorkBook(wb, filename)
+
+
 def createTeamsSheet(filename: str):
     wb = getWorkBook(filename)
     team_names = ['Team']
@@ -185,7 +209,7 @@ def createTeamsSheet(filename: str):
         team_names.append(team.getTeamName())
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
-        points.append(team.getResults())
+        points.append(team.getPoints())
         result_ones.append(team.getResultOne())
         result_twos.append(team.getResultTwo())
         result_threes.append(team.getResultThree())
