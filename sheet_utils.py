@@ -11,6 +11,14 @@ def getWorkBook(filename):
     return wb
 
 
+def writeToSheet(data, wb, sheetName):
+    sheet = wb.create_sheet(sheetName)
+    for col in range(len(data)):
+        for row in range(len(data[0])):
+            sheet.cell(row=row+1, column=col+1).value = data[col][row]
+    return wb
+
+
 def saveWorkBook(wb, filename):
     print(f'Saving results to: {filename}')
     wb.save(filename)
