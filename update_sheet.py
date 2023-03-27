@@ -7,7 +7,6 @@ import Team as Team_Class
 from Player import Player
 from Tournament import Tournament
 from Team import Team
-import pandas as pd
 
 RANK = 1
 TEAM = 2
@@ -39,33 +38,29 @@ def main():
     readYearDirectory(tourney_path, 2022)
 
     filename = 'roundnet_season_tracker.xlsx'
+
+    createPlayersSheet(filename)
+    createTeamsSheet(filename)
     createTournamentSheets(filename)
 
 
-def createTournamentSheets(filename : str):
-    wb = getWorkBook(filename)
-    wb = removeSheets(wb)
-    for tournament in tournaments_list:
-        results = tournament.getResults()
-        ranks = ['Rank']
-        teams = []
-        points = ['Points Awarded']
-        for result in results:
-            ranks.append(result.getRank())
-            teams.append(result.getTeam())
-            points.append(result.getPoints())
-        teamNames = ['Team']
-        player_ones = ['Player One']
-        player_twos = ['Player Two']
-        for team in teams:
-            teamNames.append(team.getTeamName())
-            player_ones.append(team.getPlayerOne().getName())
-            player_twos.append(team.getPlayerTwo().getName())
-        data = [ranks, teamNames, player_ones, player_twos, points]
+def readYearDirectory(tourney_path, year):
+    print(f'Year: {year}')
+    year_path = joinPath(tourney_path, str(year))
+    if (pathExists(year_path)):
+        readDirectory(joinPath(year_path, joinPath("championship", "pro")), CHAMPIONSHIP_PRO, year)
+        readDirectory(joinPath(year_path, "major"), MAJOR, year)
+        readDirectory(joinPath(year_path, joinPath("championship", "premier")), CHAMPIONSHIP_PREMIER, year)
+        readDirectory(joinPath(year_path, "challenger"), CHALLENGER, year)
+        readDirectory(joinPath(year_path, "contender"), CONTENDER, year)
 
-        wb = writeToSheet(data, wb, tournament.getLocation())
-    saveWorkBook(wb, filename)
-         
+
+def readDirectory(path, TOURNAMENT_TYPE, year):
+    if (pathExists(path)):
+        for filename in listDir(path):
+            file = joinPath(path, filename)
+            if isFile(file):
+                processTournament(file, TOURNAMENT_TYPE, year)
 
 
 def processTournament(path, TOURNAMENT_TYPE, year):
@@ -73,6 +68,8 @@ def processTournament(path, TOURNAMENT_TYPE, year):
     location = location.replace("_", " ")
 
     tournament = Tournament(location, TOURNAMENT_TYPE)
+
+    print(location)
 
     if not tournamentExists(tournament):
         tournaments_list.append(tournament)
@@ -104,8 +101,8 @@ def processTournament(path, TOURNAMENT_TYPE, year):
 
         p1_index = getPlayerIndex(player_one)
         p2_index = getPlayerIndex(player_two)
-        players_list[p1_index].addResult(points[i])
-        players_list[p2_index].addResult(points[i])
+        players_list[p1_index].addResult(ranks[i], points[i], location)
+        players_list[p2_index].addResult(ranks[i], points[i], location)
 
         team = Team(teams[0][i], player_one, player_two)
 
@@ -114,27 +111,81 @@ def processTournament(path, TOURNAMENT_TYPE, year):
             
         team_index = getTeamIndex(team)
 
-        teams_list[team_index].addResult(points[i]*2)
-        tournaments_list[tournaments_index].addResult(ranks[i], teams_list[team_index], points[i]*2)
+        teams_list[team_index].addResult(ranks[i], points[i]*2, location)
+        tournaments_list[tournaments_index].addResult(ranks[i], points[i]*2, teams_list[team_index])
 
 
-def readYearDirectory(tourney_path, year):
-    print(f'Year: {year}')
-    year_path = joinPath(tourney_path, str(year))
-    if (pathExists(year_path)):
-        readDirectory(joinPath(year_path, joinPath("championship", "pro")), CHAMPIONSHIP_PRO, year)
-        readDirectory(joinPath(year_path, "major"), MAJOR, year)
-        # readDirectory(joinPath(year_path, joinPath("championship", "premier")), CHAMPIONSHIP_PREMIER, year)
-        # readDirectory(joinPath(year_path, "challenger"), CHALLENGER, year)
-        # readDirectory(joinPath(year_path, "contender"), CONTENDER, year)
+def createTournamentSheets(filename : str):
+    wb = getWorkBook(filename)
+    for tournament in tournaments_list:
+        results = tournament.getResults()
+        ranks = ['Rank']
+        teams = []
+        points = ['Points Awarded']
+        for result in results:
+            ranks.append(result.getRank())
+            teams.append(result.getTeam())
+            points.append(result.getPoints())
+        teamNames = ['Team']
+        player_ones = ['Player One']
+        player_twos = ['Player Two']
+        for team in teams:
+            teamNames.append(team.getTeamName())
+            player_ones.append(team.getPlayerOne().getName())
+            player_twos.append(team.getPlayerTwo().getName())
+        data = [ranks, teamNames, player_ones, player_twos, points]
+
+        wb = writeToSheet(data, wb, tournament.getLocation())
+    saveWorkBook(wb, filename)
 
 
-def readDirectory(path, TOURNAMENT_TYPE, year):
-    if (pathExists(path)):
-        for filename in listDir(path):
-            file = joinPath(path, filename)
-            if isFile(file):
-                processTournament(file, TOURNAMENT_TYPE, year)
+def createPlayersSheet(filename : str):
+    wb = getWorkBook(filename)
+    wb = removeSheets(wb)
+    player_names = ['Player']
+    points = ['Points']
+    result_ones = ['Result 1']
+    result_twos = ['Result 2']
+    result_threes = ['Result 3']
+    for player in players_list:
+        player_names.append(player.getName())
+        points.append(player.getResults())
+        result_ones.append(player.getResultOne())
+        result_twos.append(player.getResultTwo())
+        result_threes.append(player.getResultThree())            
+
+    data = [player_names, points, result_ones, result_twos, result_threes]
+    wb = writeToSheet(data, wb, 'Players')
+
+    for i in range(len(tournaments_list)):
+        tournament = tournaments_list[i]
+        tournament_data = [tournament.getLocation()]
+        for player in players_list:
+            tournament_data.append(player.getResultByLocation(tournament.getLocation()))
+        wb = writeToColumn(tournament_data, wb, 'Players', i+5)
+    saveWorkBook(wb, filename)
+
+
+def createTeamsSheet(filename: str):
+    wb = getWorkBook(filename)
+    team_names = ['Team']
+    player_ones = ['Player One']
+    player_twos = ['Player Two']
+    points = ['Points']
+    result_ones = ['Result 1']
+    result_twos = ['Result 2']
+    result_threes = ['Result 3']
+    for team in teams_list:
+        team_names.append(team.getTeamName())
+        player_ones.append(team.getPlayerOne().getName())
+        player_twos.append(team.getPlayerTwo().getName())
+        points.append(team.getResults())
+        result_ones.append(team.getResultOne())
+        result_twos.append(team.getResultTwo())
+        result_threes.append(team.getResultThree())
+    data = [team_names, player_ones, player_twos, points, result_ones, result_twos, result_threes]
+    wb = writeToSheet(data, wb, 'Teams')
+    saveWorkBook(wb, filename)
 
 
 def getPointsArray(year, TOURNAMENT_TYPE):
