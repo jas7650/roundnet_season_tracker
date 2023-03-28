@@ -42,6 +42,7 @@ def main():
     createPlayersSheet(filename)
     createPlayersRankedSheet(filename)
     createTeamsSheet(filename)
+    createTeamsRankedSheet(filename)
     createTournamentSheets(filename)
 
 
@@ -215,6 +216,39 @@ def createTeamsSheet(filename: str):
         result_threes.append(team.getResultThree())
     data = [team_names, player_ones, player_twos, points, result_ones, result_twos, result_threes]
     wb = writeToSheet(data, wb, 'Teams')
+    for i in range(len(tournaments_list)):
+        tournament = tournaments_list[i]
+        tournament_data = [tournament.getLocation()]
+        for team in teams_list:
+            tournament_data.append(team.getResultByLocation(tournament.getLocation()))
+        wb = writeToColumn(tournament_data, wb, 'Teams', i+7)
+    saveWorkBook(wb, filename)
+
+
+def createTeamsRankedSheet(filename):
+    wb = getWorkBook(filename)
+    team_names = ['Team']
+    player_ones = ['Player One']
+    player_twos = ['Player Two']
+    points = ['Points']
+    copy_list = teams_list
+    sorted_list = []
+    for i in range(len(teams_list)):
+        largest_team = copy_list[0]
+        for team in copy_list:
+            if team.getPoints() > largest_team.getPoints():
+                largest_team = team
+        sorted_list.append(largest_team)
+        copy_list.remove(largest_team)
+
+    for team in sorted_list:
+        team_names.append(team.getTeamName())
+        player_ones.append(team.getPlayerOne().getName())
+        player_twos.append(team.getPlayerTwo().getName())
+        points.append(team.getPoints())          
+
+    data = [team_names, player_ones, player_twos, points]
+    wb = writeToSheet(data, wb, 'Teams Ranked')
     saveWorkBook(wb, filename)
 
 
