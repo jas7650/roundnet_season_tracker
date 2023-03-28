@@ -1,12 +1,12 @@
-from scrape_utils import *
-from sheet_utils import *
-from path_utils import *
-import Player as Player_Class
-import Tournament as Tournament_Class
-import Team as Team_Class
-from Player import Player
-from Tournament import Tournament
-from Team import Team
+from utils.scrape_utils import *
+from utils.sheet_utils import *
+from utils.path_utils import *
+import objects.Player as Player_Class
+import objects.Tournament as Tournament_Class
+import objects.Team as Team_Class
+from objects.Player import Player
+from objects.Tournament import Tournament
+from objects.Team import Team
 
 RANK = 1
 TEAM = 2
@@ -69,9 +69,9 @@ def processTournament(path, TOURNAMENT_TYPE, year):
     location = splitText(getBaseName(path))[0]
     location = location.replace("_", " ")
 
-    tournament = Tournament(location, TOURNAMENT_TYPE)
+    tournament = Tournament(location, TOURNAMENT_TYPE, year)
 
-    print(location)
+    print(f'{location}: {year}')
 
     if not tournamentExists(tournament):
         tournaments_list.append(tournament)
@@ -137,13 +137,7 @@ def createTournamentSheets(filename : str):
             player_twos.append(team.getPlayerTwo().getName())
         data = [ranks, teamNames, player_ones, player_twos, points]
 
-        wb = writeToSheet(data, wb, tournament.getLocation())
-        for i in range(len(tournaments_list)):
-            tournament = tournaments_list[i]
-            tournament_data = [tournament.getLocation()]
-            for team in teams_list:
-                tournament_data.append(team.getResultByLocation(tournament.getLocation()))
-            wb = writeToColumn(tournament_data, wb, 'Teams', i+7)
+        wb = writeToSheet(data, wb, f'{tournament.getLocation()} {tournament.getYear()}')
     saveWorkBook(wb, filename)
 
 

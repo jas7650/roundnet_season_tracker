@@ -1,5 +1,5 @@
-from Player import Player
-from Result import Result
+from objects.Player import Player
+from objects.Result import Result
 
 
 class Team(object):

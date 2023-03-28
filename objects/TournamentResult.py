@@ -1,4 +1,4 @@
-from Team import Team
+from objects.Team import Team
 class TournamentResult(object):
 
     def __init__(self, rank : int, points : int, team : Team):

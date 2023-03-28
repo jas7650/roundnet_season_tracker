@@ -1,4 +1,4 @@
-from Result import Result
+from objects.Result import Result
 
 class Player(object):
 
