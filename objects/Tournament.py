@@ -15,6 +15,9 @@ class Tournament(object):
     def getResults(self):
         return self.results
     
+    def getTopThree(self):
+        return [self.results[0].getTeam(), self.results[1].getTeam(), self.results[2].getTeam()]
+    
     def getLocation(self):
         return self.location
     

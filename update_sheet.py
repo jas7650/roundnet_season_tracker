@@ -28,10 +28,12 @@ def main():
     global players_list
     global teams_list
     global tournaments_list
+    global pro_bids_list
 
     players_list = []
     teams_list = []
     tournaments_list = []
+    pro_bids_list = []
    
     tourney_path = joinPath(getCurrentLocation(), "tournaments")
 
@@ -43,6 +45,8 @@ def main():
     createPlayersRankedSheet(filename)
     createTeamsSheet(filename)
     createTeamsRankedSheet(filename)
+    setProBidsList()
+    createProBidsSheet(filename)
     createTournamentSheets(filename)
 
 
@@ -115,6 +119,30 @@ def processTournament(path, TOURNAMENT_TYPE, year):
 
         teams_list[team_index].addResult(ranks[i], points[i]*2, location)
         tournaments_list[tournaments_index].addResult(ranks[i], points[i]*2, teams_list[team_index])
+    if tournament.getTournamentType() == MAJOR:
+        print("Major")
+        top_three = tournament.getTopThree()
+        for team in top_three:
+            for i in range(len(teams_list)):
+                if Team_Class.equals(team, teams_list[i]):
+                    teams_list[i].setProBid()
+
+
+def createProBidsSheet(filename : str):
+    wb = getWorkBook(filename)
+    team_names = ['Team']
+    player_ones = ['Player One']
+    player_twos = ['Player Two']
+    points = ['Points']
+    for team in pro_bids_list:
+        team_names.append(team.getTeamName())
+        player_ones.append(team.getPlayerOne().getName())
+        player_twos.append(team.getPlayerTwo().getName())
+        points.append(team.getPoints())
+    data = [team_names, player_ones, player_twos, points]
+
+    wb = writeToSheet(data, wb, 'Pro Bids')
+    saveWorkBook(wb, filename)
 
 
 def createTournamentSheets(filename : str):
@@ -172,7 +200,9 @@ def createPlayersRankedSheet(filename):
     wb = getWorkBook(filename)
     player_names = ['Player']
     points = ['Points']
-    copy_list = players_list
+    copy_list = []
+    for player in players_list:
+        copy_list.append(player)
     sorted_list = []
     for i in range(len(players_list)):
         largest_player = copy_list[0]
@@ -225,7 +255,9 @@ def createTeamsRankedSheet(filename):
     player_ones = ['Player One']
     player_twos = ['Player Two']
     points = ['Points']
-    copy_list = teams_list
+    copy_list = []
+    for team in teams_list:
+        copy_list.append(team)
     sorted_list = []
     for i in range(len(teams_list)):
         largest_team = copy_list[0]
@@ -244,6 +276,24 @@ def createTeamsRankedSheet(filename):
     data = [team_names, player_ones, player_twos, points]
     wb = writeToSheet(data, wb, 'Teams Ranked')
     saveWorkBook(wb, filename)
+
+
+def setProBidsList():
+    for team in teams_list:
+        if team.getProBid() == True:
+            pro_bids_list.append(team)
+    copy_list = []
+    for team in teams_list:
+        if team.getProBid() == False:
+            copy_list.append(team)
+    remaining_spots = 16-len(pro_bids_list)
+    for i in range(remaining_spots):
+        largest_team = copy_list[0]
+        for team in copy_list:
+            if team.getPoints() > largest_team.getPoints():
+                largest_team = team
+        copy_list.remove(largest_team)
+        pro_bids_list.append(largest_team)
 
 
 def getPointsArray(year, TOURNAMENT_TYPE):

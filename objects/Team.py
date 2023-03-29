@@ -7,6 +7,7 @@ class Team(object):
     def __init__(self, teamName : str, player_one: Player, player_two: Player):
         self.teamName = teamName
         self.players = [player_one, player_two]
+        self.proBid = False
         self.results = []
 
     def addResult(self, rank : int, amount : int, location : str):
@@ -14,6 +15,12 @@ class Team(object):
         while index < len(self.results) and amount < self.results[index].getPoints():
             index += 1
         self.results.insert(index, Result(rank, amount, location))
+
+    def setProBid(self):
+        self.proBid = True
+
+    def getProBid(self):
+        return self.proBid
 
     def getTeamName(self):
         return self.teamName
@@ -61,6 +68,7 @@ class Team(object):
         for result in self.results:
             points.append(result.getPoints())
         print(f'Points: {points}')
+        print(f'Pro Bid: {self.proBid}')
         print()
 
 def equals(team1 : Team, team2 : Team):
