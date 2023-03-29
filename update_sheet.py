@@ -1,6 +1,7 @@
 from utils.scrape_utils import *
 from utils.sheet_utils import *
 from utils.path_utils import *
+from utils.point_utils import *
 import objects.Player as Player_Class
 import objects.Tournament as Tournament_Class
 import objects.Team as Team_Class
@@ -88,12 +89,7 @@ def processTournament(path, TOURNAMENT_TYPE, year):
         for i in range(len(ranks)):
             ranks[i] += 16
 
-    ideal_points = getPointsArray(year, TOURNAMENT_TYPE)
-    old_points = getActualPoints(ranks, ideal_points)
-
-    points = []
-    for value in old_points:
-        points.append(value/2.0)
+    points = getPoints(TOURNAMENT_TYPE, year, ranks)
 
     for i in range(len(teams[0])):
         player_one = Player(teams[1][i])
@@ -294,55 +290,6 @@ def setProBidsList():
                 largest_team = team
         copy_list.remove(largest_team)
         pro_bids_list.append(largest_team)
-
-
-def getPointsArray(year, TOURNAMENT_TYPE):
-    wb = getWorkBook('point_distribution.xlsx')
-    
-    if (year == 2022):
-        sheet = getSheetByName(wb, 'Point Distribution 2022')
-    else:
-        sheet = getSheetByName(wb, 'Point Distribution 2023')
-    if (TOURNAMENT_TYPE == CHAMPIONSHIP_PREMIER):
-        column = CHAMPIONSHIP_PRO + 2 
-    else:
-        column = TOURNAMENT_TYPE + 2
-    points = getColumnData(sheet, column)
-    return points
-
-
-def getActualPoints(ranks, points):
-    previousRank = 0
-    average = 0
-    i = 0
-    actual_points = []
-    if (len(ranks) != len(points)):
-        points = points[ranks[0]-1:]
-    while (i < len(ranks)):
-        rank = ranks[i]
-        if (rank != previousRank):
-            average = getAverageValue(ranks, points, i)
-
-        actual_points.append(average)
-        previousRank = rank
-        i = i + 1
-    return actual_points
-
-
-def getAverageValue(ranks, points, index):
-    if (index == len(ranks)-1):
-        return ranks[index]
-    i = index+1
-    numValues = 1
-    sum = points[index]
-
-    while (ranks[i] == ranks[index]):
-        sum += points[i]
-        numValues += 1
-        i += 1
-        if (i == len(ranks)):
-            break
-    return sum/numValues
 
 
 def printTeams():
