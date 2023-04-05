@@ -15,12 +15,6 @@ PLAYER_ONE = 3
 PLAYER_TWO = 4
 POINTS = 5
 
-CONTENDER = 0
-CHALLENGER = 1 
-MAJOR = 2
-CHAMPIONSHIP_PRO = 3
-CHAMPIONSHIP_PREMIER = 4
-
 PLAYER_COL = 1
 POINTS_COL = 2
 
@@ -55,27 +49,28 @@ def readYearDirectory(tourney_path, year):
     print(f'Year: {year}')
     year_path = joinPath(tourney_path, str(year))
     if (pathExists(year_path)):
-        readDirectory(joinPath(year_path, joinPath("championship", "pro")), CHAMPIONSHIP_PRO, year)
-        readDirectory(joinPath(year_path, "major"), MAJOR, year)
-        readDirectory(joinPath(year_path, joinPath("championship", "premier")), CHAMPIONSHIP_PREMIER, year)
-        readDirectory(joinPath(year_path, "challenger"), CHALLENGER, year)
-        readDirectory(joinPath(year_path, "contender"), CONTENDER, year)
+        readDirectory(os.path.join(year_path, "sts", "championship"), year)
+        readDirectory(os.path.join(year_path, "sts", "major"), year)
+        readDirectory(os.path.join(year_path, "sts", "challenger"), year)
+        readDirectory(os.path.join(year_path, "sts", "contender"), year)
 
 
-def readDirectory(path, TOURNAMENT_TYPE, year):
+def readDirectory(path, year):
     if (pathExists(path)):
         for filename in listDir(path):
-            file = joinPath(path, filename)
-            if isFile(file):
-                processTournament(file, TOURNAMENT_TYPE, year)
+            folder = joinPath(path, filename)
+            if not isFile(folder):
+                processTournament(folder, year)
 
 
-def processTournament(path, TOURNAMENT_TYPE, year):
+def processTournament(path, year):
+    location = os.path.basename(path)
+    tournament_type = getTournamentType(os.path.basename(os.path.dirname(path)))
+
     location = splitText(getBaseName(path))[0]
     location = location.replace("_", " ")
 
-    tournament = Tournament(location, TOURNAMENT_TYPE, year)
-
+    tournament = Tournament(location, tournament_type, year)
     print(f'{location}: {year}')
 
     if not tournamentExists(tournament):
@@ -83,45 +78,49 @@ def processTournament(path, TOURNAMENT_TYPE, year):
 
     tournaments_index = getTournamentIndex(tournament)
 
-    ranks, teams = scrapeFile(path)
-    
-    if TOURNAMENT_TYPE == CHAMPIONSHIP_PREMIER:
-        for i in range(len(ranks)):
-            ranks[i] += 16
+    divisions = []
+    for filename in os.listdir(path):
+        divisions.append(str(filename).split(".")[0])
 
-    points = getPoints(TOURNAMENT_TYPE, year, ranks)
+    for division in divisions:
+        if division == "contender" and "premier" in divisions:
+            continue
+        ranks, teams = scrapeFile(os.path.join(path, f"{division}.html"))
+        if division == "premier" and tournament_type == TournamentType.CHAMPIONSHIP.value:
+            for i in range(len(ranks)):
+                ranks[i] += 16
+        points = getPoints(tournament_type, "premier" in divisions, year, ranks)
 
-    for i in range(len(teams[0])):
-        player_one = Player(teams[1][i])
-        player_two = Player(teams[2][i])
+        for i in range(len(teams[0])):
+            player_one = Player(teams[1][i])
+            player_two = Player(teams[2][i])
 
-        if not playerExists(player_one):
-            players_list.append(player_one)    
+            if not playerExists(player_one):
+                players_list.append(player_one)    
 
-        if not playerExists(player_two):
-            players_list.append(player_two)
+            if not playerExists(player_two):
+                players_list.append(player_two)
 
-        p1_index = getPlayerIndex(player_one)
-        p2_index = getPlayerIndex(player_two)
-        players_list[p1_index].addResult(ranks[i], points[i], location)
-        players_list[p2_index].addResult(ranks[i], points[i], location)
+            p1_index = getPlayerIndex(player_one)
+            p2_index = getPlayerIndex(player_two)
+            players_list[p1_index].addResult(ranks[i], points[i], location)
+            players_list[p2_index].addResult(ranks[i], points[i], location)
 
-        team = Team(teams[0][i], player_one, player_two)
+            team = Team(teams[0][i], player_one, player_two)
 
-        if not teamExists(team):
-            teams_list.append(team)
-            
-        team_index = getTeamIndex(team)
+            if not teamExists(team):
+                teams_list.append(team)
+                
+            team_index = getTeamIndex(team)
 
-        teams_list[team_index].addResult(ranks[i], points[i]*2, location)
-        tournaments_list[tournaments_index].addResult(ranks[i], points[i]*2, teams_list[team_index])
-    if tournament.getTournamentType() == MAJOR:
-        print("Major")
-        top_three = tournament.getTopThree()
-        for team in top_three:
-            for i in range(len(teams_list)):
-                if Team_Class.equals(team, teams_list[i]):
-                    teams_list[i].setProBid()
+            teams_list[team_index].addResult(ranks[i], points[i]*2, location)
+            tournaments_list[tournaments_index].addResult(ranks[i], points[i]*2, teams_list[team_index])
+        if tournament.getTournamentType() == TournamentType.MAJOR.value:
+            top_three = tournament.getTopThree()
+            for team in top_three:
+                for i in range(len(teams_list)):
+                    if Team_Class.equals(team, teams_list[i]):
+                        teams_list[i].setProBid()    
 
 
 def createProBidsSheet(filename : str):
