@@ -10,7 +10,10 @@ class Tournament(object):
         self.results = []
 
     def addResult(self, rank : int, points : int, team : Team):
-        self.results.append(TournamentResult(rank, points, team))
+        index = 0
+        while index < len(self.results) and points < self.results[index].getPoints():
+            index += 1
+        self.results.insert(index, TournamentResult(rank, points, team))
 
     def getResults(self):
         return self.results
