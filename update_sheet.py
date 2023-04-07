@@ -103,8 +103,13 @@ def processTournament(path, year):
 
             p1_index = getPlayerIndex(player_one)
             p2_index = getPlayerIndex(player_two)
-            players_list[p1_index].addResult(ranks[i], points[i], location)
-            players_list[p2_index].addResult(ranks[i], points[i], location)
+            if i >= len(points):
+                players_list[p1_index].addResult(ranks[i], 0, location)
+                players_list[p2_index].addResult(ranks[i], 0, location)
+            else:
+                players_list[p1_index].addResult(ranks[i], points[i]/2.0, location)
+                players_list[p2_index].addResult(ranks[i], points[i]/2.0, location)
+            
 
             team = Team(teams[0][i], player_one, player_two)
 
@@ -113,8 +118,8 @@ def processTournament(path, year):
                 
             team_index = getTeamIndex(team)
 
-            teams_list[team_index].addResult(ranks[i], points[i]*2, location)
-            tournaments_list[tournaments_index].addResult(ranks[i], points[i]*2, teams_list[team_index])
+            teams_list[team_index].addResult(ranks[i], points[i], location)
+            tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
         if tournament.getTournamentType() == TournamentType.MAJOR.value:
             top_three = tournament.getTopThree()
             for team in top_three:
