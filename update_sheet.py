@@ -23,12 +23,10 @@ def main():
     global players_list
     global teams_list
     global tournaments_list
-    global pro_bids_list
 
     players_list = []
     teams_list = []
     tournaments_list = []
-    pro_bids_list = []
    
     tourney_path = joinPath(getCurrentLocation(), "tournaments")
 
@@ -40,7 +38,6 @@ def main():
     createPlayersRankedSheet(filename)
     createTeamsSheet(filename)
     createTeamsRankedSheet(filename)
-    setProBidsList()
     createProBidsSheet(filename)
     createTournamentSheets(filename)
 
@@ -126,23 +123,6 @@ def processTournament(path, year):
                 for i in range(len(teams_list)):
                     if Team_Class.equals(team, teams_list[i]):
                         teams_list[i].setProBid()    
-
-
-def createProBidsSheet(filename : str):
-    wb = getWorkBook(filename)
-    team_names = ['Team']
-    player_ones = ['Player One']
-    player_twos = ['Player Two']
-    points = ['Points']
-    for team in pro_bids_list:
-        team_names.append(team.getTeamName())
-        player_ones.append(team.getPlayerOne().getName())
-        player_twos.append(team.getPlayerTwo().getName())
-        points.append(team.getPoints())
-    data = [team_names, player_ones, player_twos, points]
-
-    wb = writeToSheet(data, wb, 'Pro Bids')
-    saveWorkBook(wb, filename)
 
 
 def createTournamentSheets(filename : str):
@@ -255,10 +235,9 @@ def createTeamsRankedSheet(filename):
     player_ones = ['Player One']
     player_twos = ['Player Two']
     points = ['Points']
-    copy_list = []
-    for team in teams_list:
-        copy_list.append(team)
     sorted_list = []
+
+    copy_list = teams_list.copy()
     for i in range(len(teams_list)):
         largest_team = copy_list[0]
         for team in copy_list:
@@ -278,14 +257,20 @@ def createTeamsRankedSheet(filename):
     saveWorkBook(wb, filename)
 
 
-def setProBidsList():
+def createProBidsSheet(filename : str):
+    wb = getWorkBook(filename)
+    team_names = ['Team']
+    player_ones = ['Player One']
+    player_twos = ['Player Two']
+    points = ['Points']
+    pro_bids_list = []
+    sorted_list = []
+
+    copy_list = teams_list.copy()
     for team in teams_list:
         if team.getProBid() == True:
             pro_bids_list.append(team)
-    copy_list = []
-    for team in teams_list:
-        if team.getProBid() == False:
-            copy_list.append(team)
+            copy_list.remove(team)
     remaining_spots = 16-len(pro_bids_list)
     for i in range(remaining_spots):
         largest_team = copy_list[0]
@@ -294,6 +279,25 @@ def setProBidsList():
                 largest_team = team
         copy_list.remove(largest_team)
         pro_bids_list.append(largest_team)
+
+    copy_list = pro_bids_list.copy()
+    for i in range(16):
+        largest_team = copy_list[0]
+        for team in copy_list:
+            if team.getPoints() > largest_team.getPoints():
+                largest_team = team
+        copy_list.remove(largest_team)
+        sorted_list.append(largest_team)
+
+    for team in sorted_list:
+        team_names.append(team.getTeamName())
+        player_ones.append(team.getPlayerOne().getName())
+        player_twos.append(team.getPlayerTwo().getName())
+        points.append(team.getPoints())
+    data = [team_names, player_ones, player_twos, points]
+
+    wb = writeToSheet(data, wb, 'Pro Bids')
+    saveWorkBook(wb, filename)    
 
 
 def printTeams():
