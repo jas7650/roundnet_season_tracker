@@ -31,6 +31,7 @@ def main():
     tourney_path = joinPath(getCurrentLocation(), "tournaments")
 
     readYearDirectory(tourney_path, 2022)
+    readYearDirectory(tourney_path, 2023)
 
     filename = 'roundnet_season_tracker.xlsx'
 
@@ -86,7 +87,7 @@ def processTournament(path, year):
         if division == "premier" and tournament_type == TournamentType.CHAMPIONSHIP.value:
             for i in range(len(ranks)):
                 ranks[i] += 16
-        points = getPoints(tournament_type, "premier" in divisions, year, ranks)
+        points = getPoints(tournament_type, year, ranks, len(teams[0]))
 
         for i in range(len(teams[0])):
             player_one = Player(teams[1][i])
@@ -118,11 +119,12 @@ def processTournament(path, year):
             teams_list[team_index].addResult(ranks[i], points[i], location)
             tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
         if tournament.getTournamentType() == TournamentType.MAJOR.value:
-            top_three = tournament.getTopThree()
-            for team in top_three:
-                for i in range(len(teams_list)):
-                    if Team_Class.equals(team, teams_list[i]):
-                        teams_list[i].setProBid()    
+            if year == 2023:
+                top_three = tournament.getTopThree()
+                for team in top_three:
+                    for i in range(len(teams_list)):
+                        if Team_Class.equals(team, teams_list[i]):
+                            teams_list[i].setProBid()    
 
 
 def createTournamentSheets(filename : str):
