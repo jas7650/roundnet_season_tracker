@@ -34,11 +34,4 @@ class Tournament(object):
         print(f'Location: {self.location}\n')
         print(f'Tournament Type: {self.tournamentType}\n')
         print()
-
-
-def equals(tournament1 : Tournament, tournament2 : Tournament):
-    if tournament1.getLocation() != tournament2.getLocation():
-        return False
-    if tournament1.getYear() != tournament2.getYear():
-        return False
-    return True
+        

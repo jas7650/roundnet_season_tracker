@@ -70,12 +70,3 @@ class Team(object):
         print(f'Points: {points}')
         print(f'Pro Bid: {self.proBid}')
         print()
-
-def equals(team1 : Team, team2 : Team):
-    if team1.teamName != team2.teamName:
-        return False
-    if team1.getPlayerOne().getName() not in team2.getPlayerNames():
-        return False
-    if team1.getPlayerTwo().getName() not in team2.getPlayerNames():
-        return False
-    return True

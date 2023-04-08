@@ -43,10 +43,4 @@ class Player(object):
         print(f'Name: {self.name}')
         print(f'Results: {self.results}')
         print()
-
-
-def equals(player1 : Player, player2 : Player):
-    if player1.name != player2.name:
-        return False
-    return True
     
