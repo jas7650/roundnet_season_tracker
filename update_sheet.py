@@ -28,8 +28,8 @@ def main():
    
     tourney_path = joinPath(getCurrentLocation(), "tournaments")
 
-    readYearDirectory(tourney_path, 2022)
     readYearDirectory(tourney_path, 2023)
+    readYearDirectory(tourney_path, 2022)
 
     filename = 'roundnet_season_tracker.xlsx'
 

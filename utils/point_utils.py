@@ -74,7 +74,7 @@ def getActualPoints(ranks, points):
 
 def getAverageValue(ranks, points, index):
     if (index == len(ranks)-1):
-        return ranks[index]
+        return points[index]
     i = index+1
     numValues = 1
     sum = points[index]
