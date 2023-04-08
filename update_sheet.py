@@ -303,18 +303,6 @@ def createProBidsSheet(filename : str):
     saveWorkBook(wb, filename)    
 
 
-def printTeams():
-    print("Teams:")
-    for team in teams_list:
-        team.printTeam()
-
-
-def printPlayers():
-    print("Players:")
-    for player in players_list:
-        player.printPlayer()
-
-
 def teamExists(team : Team):
     for team_check in teams_list:
         if team_equals(team_check, team):
