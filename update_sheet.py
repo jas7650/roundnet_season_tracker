@@ -2,9 +2,7 @@ from utils.scrape_utils import *
 from utils.sheet_utils import *
 from utils.path_utils import *
 from utils.point_utils import *
-import objects.Player as Player_Class
-import objects.Tournament as Tournament_Class
-import objects.Team as Team_Class
+from utils.compare_utils import *
 from objects.Player import Player
 from objects.Tournament import Tournament
 from objects.Team import Team
@@ -124,7 +122,7 @@ def processTournament(path, year):
                 top_three = tournament.getTopThree()
                 for team in top_three:
                     for i in range(len(teams_list)):
-                        if Team_Class.equals(team, teams_list[i]):
+                        if team_equals(team, teams_list[i]):
                             teams_list[i].setProBid()    
 
 
@@ -266,6 +264,7 @@ def createProBidsSheet(filename : str):
     player_ones = ['Player One']
     player_twos = ['Player Two']
     points = ['Points']
+    pro_bids = ['Pro Bid']
     pro_bids_list = []
     sorted_list = []
 
@@ -297,7 +296,8 @@ def createProBidsSheet(filename : str):
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
         points.append(team.getPoints())
-    data = [team_names, player_ones, player_twos, points]
+        pro_bids.append(team.getProBid())
+    data = [team_names, player_ones, player_twos, points, pro_bids]
 
     wb = writeToSheet(data, wb, 'Pro Bids')
     saveWorkBook(wb, filename)    
@@ -317,7 +317,7 @@ def printPlayers():
 
 def teamExists(team : Team):
     for team_check in teams_list:
-        if Team_Class.equals(team_check, team):
+        if team_equals(team_check, team):
             return True
     return False
 
@@ -325,13 +325,13 @@ def teamExists(team : Team):
 def getTeamIndex(team : Team):
     for i in range(len(teams_list)):
         team_check = teams_list[i]
-        if Team_Class.equals(team_check, team):
+        if team_equals(team_check, team):
             return i
         
 
 def playerExists(player : Player):
     for player_check in players_list:
-        if Player_Class.equals(player_check, player):
+        if player_equals(player_check, player):
             return True
     return False
 
@@ -339,13 +339,13 @@ def playerExists(player : Player):
 def getPlayerIndex(player : Player):
     for i in range(len(players_list)):
         player_check = players_list[i]
-        if Player_Class.equals(player_check, player):
+        if player_equals(player_check, player):
             return i
         
 
 def tournamentExists(tournament : Tournament):
     for tournament_check in tournaments_list:
-        if Tournament_Class.equals(tournament_check, tournament):
+        if tournaments_equals(tournament_check, tournament):
             return True
     return False
 
@@ -353,7 +353,7 @@ def tournamentExists(tournament : Tournament):
 def getTournamentIndex(tournament : Tournament):
     for i in range(len(tournaments_list)):
         tournament_check = tournaments_list[i]
-        if Tournament_Class.equals(tournament_check, tournament):
+        if tournaments_equals(tournament_check, tournament):
             return i
 
 
