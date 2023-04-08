@@ -51,6 +51,7 @@ def readYearDirectory(tourney_path, year):
         readDirectory(os.path.join(year_path, "sts", "major"), year)
         readDirectory(os.path.join(year_path, "sts", "challenger"), year)
         readDirectory(os.path.join(year_path, "sts", "contender"), year)
+    print()
 
 
 def readDirectory(path, year):
