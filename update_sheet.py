@@ -6,6 +6,7 @@ from utils.compare_utils import *
 from objects.Player import Player
 from objects.Tournament import Tournament
 from objects.Team import Team
+import time
 
 RANK = 1
 TEAM = 2
@@ -18,6 +19,7 @@ POINTS_COL = 2
 
 
 def main():
+    start_time = time.time()
     global players_list
     global teams_list
     global tournaments_list
@@ -31,6 +33,9 @@ def main():
     readYearDirectory(tourney_path, 2023)
     readYearDirectory(tourney_path, 2022)
 
+    players_list = mergeSort(players_list)    
+    teams_list = mergeSort(teams_list)
+
     filename = 'roundnet_season_tracker.xlsx'
 
     createPlayersSheet(filename)
@@ -39,9 +44,8 @@ def main():
     createTeamsRankedSheet(filename)
     createProBidsSheet(filename)
     createTournamentSheets(filename)
-    sorted_list = sortPlayersList(players_list)
-    # for player in sorted_list:
-    #     player.print()
+    
+    print(f"Seconds: {time.time() - start_time}")
 
 
 def readYearDirectory(tourney_path, year):
@@ -126,7 +130,7 @@ def processTournament(path, year):
                 for team in top_three:
                     for i in range(len(teams_list)):
                         if team_equals(team, teams_list[i]):
-                            teams_list[i].setProBid()    
+                            teams_list[i].setProBid()
 
 
 def createTournamentSheets(filename : str):
@@ -180,25 +184,14 @@ def createPlayersSheet(filename : str):
     saveWorkBook(wb, filename)
 
 
-def createPlayersRankedSheet(filename):
+def createPlayersRankedSheet(filename : str):
     wb = getWorkBook(filename)
     player_names = ['Player']
     points = ['Points']
-    copy_list = []
-    for player in players_list:
-        copy_list.append(player)
-    sorted_list = []
-    for i in range(len(players_list)):
-        largest_player = copy_list[0]
-        for player in copy_list:
-            if player.getPoints() > largest_player.getPoints():
-                largest_player = player
-        sorted_list.append(largest_player)
-        copy_list.remove(largest_player)
 
-    for player in sorted_list:
-        player_names.append(player.getName())
-        points.append(player.getPoints())          
+    for player in players_list:
+        player_names.append(player.getName())       
+        points.append(player.getPoints())
 
     data = [player_names, points]
     wb = writeToSheet(data, wb, 'Players Ranked')
@@ -239,18 +232,8 @@ def createTeamsRankedSheet(filename):
     player_ones = ['Player One']
     player_twos = ['Player Two']
     points = ['Points']
-    sorted_list = []
 
-    copy_list = teams_list.copy()
-    for i in range(len(teams_list)):
-        largest_team = copy_list[0]
-        for team in copy_list:
-            if team.getPoints() > largest_team.getPoints():
-                largest_team = team
-        sorted_list.append(largest_team)
-        copy_list.remove(largest_team)
-
-    for team in sorted_list:
+    for team in teams_list:
         team_names.append(team.getTeamName())
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
@@ -306,28 +289,34 @@ def createProBidsSheet(filename : str):
     saveWorkBook(wb, filename)
 
 
-def sortPlayersList(players : list):
+def mergeSort(players : list):
     if len(players) == 1:
         return [players[0]]
-    elif len(players) == 2:
-        if players[0].getPoints() > players[1].getPoints():
-            return [players[0], players[1]]
-        else:
-            return [players[1], players[0]]
     else:
         index = int(len(players)/2)
-        first_half = sortPlayersList(players[:index])
-        second_half =  sortPlayersList(players[index:])
-        if first_half[0].getPoints() > second_half[0].getPoints():
-            print("Returning")
-            for player in first_half + second_half:
-                player.print()
-            return first_half + second_half
+        left = mergeSort(players[:index])
+        right =  mergeSort(players[index:])
+        return merge(left, right)
+    
+
+def merge(left : list, right : list):
+    l = 0
+    r = 0
+    sorted_list = []
+    while l < len(left) and r < len(right):
+        if left[l].getPoints() < right[r].getPoints():
+            sorted_list.append(right[r])
+            r += 1
         else:
-            print("Returning")
-            for player in second_half + first_half:
-                player.print()
-            return second_half + first_half
+            sorted_list.append(left[l])
+            l += 1
+    while l < len(left):
+        sorted_list.append(left[l])
+        l += 1
+    while r < len(right):
+        sorted_list.append(right[r])
+        r += 1
+    return sorted_list
 
 
 def teamExists(team : Team):
