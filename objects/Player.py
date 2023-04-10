@@ -39,8 +39,8 @@ class Player(object):
                 return result.getPoints()
         return 0
 
-    def printPlayer(self):
+    def print(self):
         print(f'Name: {self.name}')
-        print(f'Results: {self.results}')
+        print(f'Points: {self.getPoints()}')
         print()
     

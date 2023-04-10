@@ -39,6 +39,9 @@ def main():
     createTeamsRankedSheet(filename)
     createProBidsSheet(filename)
     createTournamentSheets(filename)
+    sorted_list = sortPlayersList(players_list)
+    # for player in sorted_list:
+    #     player.print()
 
 
 def readYearDirectory(tourney_path, year):
@@ -300,7 +303,31 @@ def createProBidsSheet(filename : str):
     data = [team_names, player_ones, player_twos, points, pro_bids]
 
     wb = writeToSheet(data, wb, 'Pro Bids')
-    saveWorkBook(wb, filename)    
+    saveWorkBook(wb, filename)
+
+
+def sortPlayersList(players : list):
+    if len(players) == 1:
+        return [players[0]]
+    elif len(players) == 2:
+        if players[0].getPoints() > players[1].getPoints():
+            return [players[0], players[1]]
+        else:
+            return [players[1], players[0]]
+    else:
+        index = int(len(players)/2)
+        first_half = sortPlayersList(players[:index])
+        second_half =  sortPlayersList(players[index:])
+        if first_half[0].getPoints() > second_half[0].getPoints():
+            print("Returning")
+            for player in first_half + second_half:
+                player.print()
+            return first_half + second_half
+        else:
+            print("Returning")
+            for player in second_half + first_half:
+                player.print()
+            return second_half + first_half
 
 
 def teamExists(team : Team):
