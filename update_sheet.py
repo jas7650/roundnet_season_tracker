@@ -39,9 +39,7 @@ def main():
     filename = 'roundnet_season_tracker.xlsx'
 
     createPlayersSheet(filename)
-    createPlayersRankedSheet(filename)
     createTeamsSheet(filename)
-    createTeamsRankedSheet(filename)
     createProBidsSheet(filename)
     createTournamentSheets(filename)
     
@@ -184,20 +182,6 @@ def createPlayersSheet(filename : str):
     saveWorkBook(wb, filename)
 
 
-def createPlayersRankedSheet(filename : str):
-    wb = getWorkBook(filename)
-    player_names = ['Player']
-    points = ['Points']
-
-    for player in players_list:
-        player_names.append(player.getName())       
-        points.append(player.getPoints())
-
-    data = [player_names, points]
-    wb = writeToSheet(data, wb, 'Players Ranked')
-    saveWorkBook(wb, filename)
-
-
 def createTeamsSheet(filename: str):
     wb = getWorkBook(filename)
     team_names = ['Team']
@@ -223,24 +207,6 @@ def createTeamsSheet(filename: str):
         for team in teams_list:
             tournament_data.append(team.getResultByLocation(tournament.getLocation()))
         wb = writeToColumn(tournament_data, wb, 'Teams', i+7)
-    saveWorkBook(wb, filename)
-
-
-def createTeamsRankedSheet(filename):
-    wb = getWorkBook(filename)
-    team_names = ['Team']
-    player_ones = ['Player One']
-    player_twos = ['Player Two']
-    points = ['Points']
-
-    for team in teams_list:
-        team_names.append(team.getTeamName())
-        player_ones.append(team.getPlayerOne().getName())
-        player_twos.append(team.getPlayerTwo().getName())
-        points.append(team.getPoints())          
-
-    data = [team_names, player_ones, player_twos, points]
-    wb = writeToSheet(data, wb, 'Teams Ranked')
     saveWorkBook(wb, filename)
 
 
