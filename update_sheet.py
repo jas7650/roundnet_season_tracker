@@ -1,3 +1,4 @@
+import sys
 from utils.scrape_utils import *
 from utils.sheet_utils import *
 from utils.path_utils import *
@@ -24,11 +25,14 @@ def main():
     global teams_list
     global tournaments_list
 
+    file_name = sys.argv[0]
+    file_name = file_name.replace("update_sheet.py", "").replace("./", "")
+
     players_list = []
     teams_list = []
     tournaments_list = []
    
-    tourney_path = joinPath(getCurrentLocation(), "tournaments")
+    tourney_path = os.path.join(os.getcwd(), file_name, "tournaments")
 
     readYearDirectory(tourney_path, 2023)
     readYearDirectory(tourney_path, 2022)
@@ -36,7 +40,7 @@ def main():
     players_list = mergeSort(players_list)    
     teams_list = mergeSort(teams_list)
 
-    filename = 'roundnet_season_tracker.xlsx'
+    filename = f'{os.getcwd()}/{file_name}/roundnet_season_tracker.xlsx'
 
     createPlayersSheet(filename)
     createTeamsSheet(filename)
@@ -256,7 +260,9 @@ def createProBidsSheet(filename : str):
 
 
 def mergeSort(players : list):
-    if len(players) == 1:
+    if len(players) == 0:
+        return []
+    elif len(players) == 1:
         return [players[0]]
     else:
         index = int(len(players)/2)
