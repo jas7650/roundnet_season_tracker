@@ -1,6 +1,13 @@
-from scrape_utils import *
-from sheet_utils import *
-from path_utils import *
+import sys
+from utils.scrape_utils import *
+from utils.sheet_utils import *
+from utils.path_utils import *
+from utils.point_utils import *
+from utils.compare_utils import *
+from objects.Player import Player
+from objects.Tournament import Tournament
+from objects.Team import Team
+import time
 
 RANK = 1
 TEAM = 2
@@ -8,389 +15,322 @@ PLAYER_ONE = 3
 PLAYER_TWO = 4
 POINTS = 5
 
-CONTENDER = 0
-CHALLENGER = 1 
-MAJOR = 2
-CHAMPIONSHIP_PRO = 3
-CHAMPIONSHIP_PREMIER = 4
-
 PLAYER_COL = 1
 POINTS_COL = 2
 
 
 def main():
+    start_time = time.time()
+    global players_list
+    global teams_list
+    global tournaments_list
 
-    wb = getWorkBook('roundnet_tracking_2023.xlsx')
-    wb = removeSheets(wb)
+    file_name = sys.argv[0]
+    file_name = file_name.replace("update_sheet.py", "").replace("./", "")
+
+    players_list = []
+    teams_list = []
+    tournaments_list = []
    
-    tourney_path = joinPath(getCurrentLocation(), "tournaments")
+    tourney_path = os.path.join(os.getcwd(), file_name, "tournaments")
+
+    readYearDirectory(tourney_path, 2023)
+    readYearDirectory(tourney_path, 2022)
+
+    players_list = mergeSort(players_list)    
+    teams_list = mergeSort(teams_list)
+
+    filename = f'{os.getcwd()}/{file_name}/roundnet_season_tracker.xlsx'
+
+    createPlayersSheet(filename)
+    createTeamsSheet(filename)
+    createProBidsSheet(filename)
+    createTournamentSheets(filename)
     
-    wb = createPlayersSheet(wb)
-    wb = createPlayersRankedSheet(wb)
-    wb = createTeamsSheet(wb)
-    wb = createTeamsRankedSheet(wb)
-    wb = readYearDirectory(wb, tourney_path, 2022)  
-    wb = readYearDirectory(wb, tourney_path, 2023)
-    wb = updatePlayerTotals(wb)
-    wb = writePlayersRankedSheet(wb)
-    wb = writeTeamsSheet(wb)
-    wb = writeTeamsRankedSheet(wb)
-
-    saveWorkBook(wb, 'roundnet_tracking_2023.xlsx')
-    # scrapeWeb()
-
-# Players - Name, Points
-# Teams - Name, Player Names, Points
+    print(f"Seconds: {time.time() - start_time}")
 
 
-def readYearDirectory(wb, tourney_path, year):
+def readYearDirectory(tourney_path, year):
     print(f'Year: {year}')
     year_path = joinPath(tourney_path, str(year))
     if (pathExists(year_path)):
-        wb = readDirectory(wb, joinPath(year_path, joinPath("championship", "pro")), CHAMPIONSHIP_PRO)
-        wb = readDirectory(wb, joinPath(year_path, "major"), MAJOR)
-        wb = readDirectory(wb, joinPath(year_path, joinPath("championship", "premier")), CHAMPIONSHIP_PREMIER)
-        wb = readDirectory(wb, joinPath(year_path, "challenger"), CHALLENGER)
-        wb = readDirectory(wb, joinPath(year_path, "contender"), CONTENDER)
-    return wb
+        readDirectory(os.path.join(year_path, "sts", "championship"), year)
+        readDirectory(os.path.join(year_path, "sts", "major"), year)
+        readDirectory(os.path.join(year_path, "sts", "challenger"), year)
+        readDirectory(os.path.join(year_path, "sts", "contender"), year)
+    print()
 
 
-def readDirectory(wb, path, TOURNAMENT_TYPE):
+def readDirectory(path, year):
     if (pathExists(path)):
         for filename in listDir(path):
-            file = joinPath(path, filename)
-            if isFile(file):
-                ranks, teams = scrapeFile(file)
-                if (TOURNAMENT_TYPE == CHAMPIONSHIP_PREMIER):
-                    for i in range(len(ranks)):
-                        ranks[i] = ranks[i]+16
-                location = splitText(getBaseName(file))[0]
-                location = location.replace("_", " ")
-                print(location)
-                ideal_points = getPointsArray(2022, TOURNAMENT_TYPE)
-                old_points = getActualPoints(ranks, ideal_points)
-                points = []
-                for value in old_points:
-                    points.append(value/2.0)
-                writeTournamentSheet(wb, ranks, teams, points, f'{location} 2022')
-                writePlayerSheet(wb, teams, points, location)
-    return wb
+            folder = joinPath(path, filename)
+            if not isFile(folder):
+                processTournament(folder, year)
 
 
-def updatePlayerTotals(wb):
-    sheet = getSheetByName(wb, 'Players')
-    players = getColumnData(sheet, PLAYER_COL)
-    locations = getExistingLocations(sheet)
-    for i in range(len(players)):
-        points = [0, 0, 0]
-        row = i + 2
-        for j in range(len(locations)):
-            col = j + 6
-            value = getCellValue(row, col, sheet)
-            if value is None:
-                value = 0
-            if value > points[0]:
-                points[2] = points[1]
-                points[1] = points[0]
-                points[0] = value
-            elif value > points[1]:
-                points[2] = points[1]
-                points[1] = value
-            elif value > points[2]:
-                points[2] = points[1]
-        sheet = writeToCell(row, 2, sheet, points[0] + points[1] + points[2])
-        sheet = writeToCell(row, 3, sheet, points[0])
-        sheet = writeToCell(row, 4, sheet, points[1])
-        sheet = writeToCell(row, 5, sheet, points[2])
-    return wb
+def processTournament(path, year):
+    location = os.path.basename(path)
+    tournament_type = getTournamentType(os.path.basename(os.path.dirname(path)))
 
+    location = splitText(getBaseName(path))[0]
+    location = location.replace("_", " ")
 
-def contains(list, value):
-    i = 0
-    while (i < len(list)):
-        if (list[i] == value):
-            return i
-        i += 1
-    return -1
+    tournament = Tournament(location, tournament_type, year)
+    print(f'{location}: {year}')
 
+    if not tournamentExists(tournament):
+        tournaments_list.append(tournament)
 
-def sortPlayers(players, points):
-    players_copy = players
-    points_copy = points
-    players_sorted = []
-    points_sorted = []
-    while len(players_copy) > 0:
-        largest_points = 0
-        largest_player = ""
-        index = 0
-        for i in range(len(points_copy)):
-            amount = points_copy[i]
-            if amount > largest_points:
-                index = i
-                largest_points = amount
-                largest_player = players_copy[i]
-        del players_copy[index]
-        del points_copy[index]
-        players_sorted.append(largest_player)
-        points_sorted.append(largest_points)
-    return players_sorted, points_sorted
+    tournaments_index = getTournamentIndex(tournament)
 
-def sortTeams(teams, players, points):
-    teams_copy = teams
-    teams_sorted = []
-    points_sorted = []
+    divisions = []
+    for filename in os.listdir(path):
+        divisions.append(str(filename).split(".")[0])
 
-    while len(teams_copy) > 0:
-        largest_points = 0
-        largest_team = teams_copy[0]
-        index = 0
-        for i in range(len(teams_copy)):
-            team = teams_copy[i]
-            p1_points = getPlayerPoints(team[1], players, points)
-            p2_points = getPlayerPoints(team[2], players, points)
-            amount = p1_points + p2_points
-            if amount > largest_points:
-                index = i
-                largest_points = amount
-                largest_team = teams_copy[i]
-        del teams_copy[index]
-        teams_sorted.append(largest_team)
-        points_sorted.append(largest_points)
-        
-    return teams_sorted, points_sorted
+    for division in divisions:
+        if division == "contender" and "premier" in divisions:
+            continue
+        ranks, teams = scrapeFile(os.path.join(path, f"{division}.html"))
+        if division == "premier" and tournament_type == TournamentType.CHAMPIONSHIP.value:
+            for i in range(len(ranks)):
+                ranks[i] += 16
+        points = getPoints(tournament_type, year, ranks, len(teams[0]))
 
+        for i in range(len(teams[0])):
+            player_one = Player(teams[1][i])
+            player_two = Player(teams[2][i])
 
-def getPlayerPoints(player, players, points):
-    for i in range(len(players)):
-        if (players[i] == player):
-            return points[i]
-    return 0
+            if not playerExists(player_one):
+                players_list.append(player_one)    
 
+            if not playerExists(player_two):
+                players_list.append(player_two)
 
-def getPointsArray(year, TOURNAMENT_TYPE):
-    wb = getWorkBook('point_distribution.xlsx')
-    
-    if (year == 2022):
-        sheet = getSheetByName(wb, 'Point Distribution 2022')
-    else:
-        sheet = getSheetByName(wb, 'Point Distribution 2023')
-    if (TOURNAMENT_TYPE == CHAMPIONSHIP_PREMIER):
-        column = CHAMPIONSHIP_PRO + 2 
-    else:
-        column = TOURNAMENT_TYPE + 2
-    points = getColumnData(sheet, column)
-    return points
-
-
-def getExistingLocations(sheet):
-    locations = []
-    row = 1
-
-    for col in range(6,sheet.max_column+1):
-        if (getCellValue(row, col, sheet) == "None"):
-            break
-        locations.append(getCellValue(row, col, sheet))
-    return locations
-
-
-def getLocation(file):
-    index = str(file).find("_")
-    text = str(file)[:index]
-    if (text == "champ"):
-        text = str(file)[index+1:]
-        index = text.find("_")
-        text = text[index+1:]
-        text = splitText(text)[0]
-        return text
-    index = str(file).find("_")
-    text = str(file)[index+1:]
-    text = splitText(text)[0]
-    return text
-
-
-def getColumn(sheet, location):
-    for col in range(6,sheet.max_column+1):
-        getCellValue(1, col, sheet)
-        if (getCellValue(1, col, sheet) == location):
-            return col
-    return sheet.max_column+1
-
-
-def getActualPoints(ranks, points):
-    previousRank = 0
-    average = 0
-    i = 0
-    actual_points = []
-    if (len(ranks) != len(points)):
-        points = points[ranks[0]-1:]
-    while (i < len(ranks)):
-        rank = ranks[i]
-        if (rank != previousRank):
-            average = getAverageValue(ranks, points, i)
-
-        actual_points.append(average)
-        previousRank = rank
-        i = i + 1
-    return actual_points
-
-
-def getAverageValue(ranks, points, index):
-    if (index == len(ranks)-1):
-        return ranks[index]
-    i = index+1
-    numValues = 1
-    sum = points[index]
-
-    while (ranks[i] == ranks[index]):
-        sum += points[i]
-        numValues += 1
-        i += 1
-        if (i == len(ranks)):
-            break
-    return sum/numValues
-
-
-def getTeamsFromTournament(sheet):
-    team_names = []
-    player_ones = []
-    player_twos = []
-    teams = []
-    for row in range(2, sheet.max_row+1):
-        for column in "BCD":
-            cell_name = "{}{}".format(column, row)
-            if (column == "B"):
-                team_names.append(sheet[cell_name].value)
-            if (column == "C"):
-                player_ones.append(sheet[cell_name].value)
-            if (column == "D"):
-                player_twos.append(sheet[cell_name].value)
-    for i in range(len(team_names)):
-        team = [team_names[i], player_ones[i], player_twos[i]]
-        teams.append(team)
-    return teams
-
-
-def getAllTeams(wb):
-    team_names = []
-    player_ones = []
-    player_twos = []
-    teams = []
-    sheet = getSheetByName(wb, 'Teams')
-    for row in range(2, sheet.max_row+1):
-        for column in "ABC":
-            cell_name = "{}{}".format(column, row)
-            if (column == "A"):
-                team_names.append(sheet[cell_name].value)
-            if (column == "B"):
-                player_ones.append(sheet[cell_name].value)
-            if (column == "C"):
-                player_twos.append(sheet[cell_name].value)
-    for i in range(len(team_names)):
-        team = [team_names[i], player_ones[i], player_twos[i]]
-        teams.append(team)
-    return teams
-
-
-def writePlayerSheet(wb, teams, points, location):
-    sheet = getSheetByName(wb, 'Players')
-    column = getColumn(sheet, location)
-
-    sheet = writeToCell(1, column, sheet, location)
-
-    for playernum in range(2):
-        i = 1
-        while (i <= len(teams[playernum+1])):
-            players = getColumnData(sheet, PLAYER_COL)
-            player_row = contains(players, teams[playernum+1][i-1])
-            if (player_row != -1):
-                row = player_row+2
+            p1_index = getPlayerIndex(player_one)
+            p2_index = getPlayerIndex(player_two)
+            if i >= len(points):
+                players_list[p1_index].addResult(ranks[i], 0, location)
+                players_list[p2_index].addResult(ranks[i], 0, location)
             else:
-                row = len(players)+2
-            sheet = writeToCell(row, column, sheet, points[i-1])
-            sheet = writeToCell(row, 1, sheet, teams[playernum+1][i-1])
-            i += 1
+                players_list[p1_index].addResult(ranks[i], points[i]/2.0, location)
+                players_list[p2_index].addResult(ranks[i], points[i]/2.0, location)
+            
+
+            team = Team(teams[0][i], player_one, player_two)
+
+            if not teamExists(team):
+                teams_list.append(team)
+                
+            team_index = getTeamIndex(team)
+
+            teams_list[team_index].addResult(ranks[i], points[i], location)
+            tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
+        if tournament.getTournamentType() == TournamentType.MAJOR.value:
+            if year == 2023:
+                top_three = tournament.getTopThree()
+                for team in top_three:
+                    for i in range(len(teams_list)):
+                        if team_equals(team, teams_list[i]):
+                            teams_list[i].setProBid()
+
+
+def createTournamentSheets(filename : str):
+    wb = getWorkBook(filename)
+    for tournament in tournaments_list:
+        results = tournament.getResults()
+        ranks = ['Rank']
+        teams = []
+        points = ['Points Awarded']
+        for result in results:
+            ranks.append(result.getRank())
+            teams.append(result.getTeam())
+            points.append(result.getPoints())
+        teamNames = ['Team']
+        player_ones = ['Player One']
+        player_twos = ['Player Two']
+        for team in teams:
+            teamNames.append(team.getTeamName())
+            player_ones.append(team.getPlayerOne().getName())
+            player_twos.append(team.getPlayerTwo().getName())
+        data = [ranks, teamNames, player_ones, player_twos, points]
+
+        wb = writeToSheet(data, wb, f'{tournament.getLocation()} {tournament.getYear()}')
+    saveWorkBook(wb, filename)
+
+
+def createPlayersSheet(filename : str):
+    wb = getWorkBook(filename)
+    wb = removeSheets(wb)
+    player_names = ['Player']
+    points = ['Points']
+    result_ones = ['Result 1']
+    result_twos = ['Result 2']
+    result_threes = ['Result 3']
+    for player in players_list:
+        player_names.append(player.getName())
+        points.append(player.getPoints())
+        result_ones.append(player.getResultOne())
+        result_twos.append(player.getResultTwo())
+        result_threes.append(player.getResultThree())            
+
+    data = [player_names, points, result_ones, result_twos, result_threes]
+    wb = writeToSheet(data, wb, 'Players')
+
+    for i in range(len(tournaments_list)):
+        tournament = tournaments_list[i]
+        tournament_data = [tournament.getLocation()]
+        for player in players_list:
+            tournament_data.append(player.getResultByLocation(tournament.getLocation()))
+        wb = writeToColumn(tournament_data, wb, 'Players', i+5)
+    saveWorkBook(wb, filename)
+
+
+def createTeamsSheet(filename: str):
+    wb = getWorkBook(filename)
+    team_names = ['Team']
+    player_ones = ['Player One']
+    player_twos = ['Player Two']
+    points = ['Points']
+    result_ones = ['Result 1']
+    result_twos = ['Result 2']
+    result_threes = ['Result 3']
+    for team in teams_list:
+        team_names.append(team.getTeamName())
+        player_ones.append(team.getPlayerOne().getName())
+        player_twos.append(team.getPlayerTwo().getName())
+        points.append(team.getPoints())
+        result_ones.append(team.getResultOne())
+        result_twos.append(team.getResultTwo())
+        result_threes.append(team.getResultThree())
+    data = [team_names, player_ones, player_twos, points, result_ones, result_twos, result_threes]
+    wb = writeToSheet(data, wb, 'Teams')
+    for i in range(len(tournaments_list)):
+        tournament = tournaments_list[i]
+        tournament_data = [tournament.getLocation()]
+        for team in teams_list:
+            tournament_data.append(team.getResultByLocation(tournament.getLocation()))
+        wb = writeToColumn(tournament_data, wb, 'Teams', i+7)
+    saveWorkBook(wb, filename)
+
+
+def createProBidsSheet(filename : str):
+    wb = getWorkBook(filename)
+    team_names = ['Team']
+    player_ones = ['Player One']
+    player_twos = ['Player Two']
+    points = ['Points']
+    pro_bids = ['Pro Bid']
+    pro_bids_list = []
+    sorted_list = []
+
+    copy_list = teams_list.copy()
+    for team in teams_list:
+        if team.getProBid() == True:
+            pro_bids_list.append(team)
+            copy_list.remove(team)
+    remaining_spots = 16-len(pro_bids_list)
+    for i in range(remaining_spots):
+        largest_team = copy_list[0]
+        for team in copy_list:
+            if team.getPoints() > largest_team.getPoints():
+                largest_team = team
+        copy_list.remove(largest_team)
+        pro_bids_list.append(largest_team)
+
+    copy_list = pro_bids_list.copy()
+    for i in range(16):
+        largest_team = copy_list[0]
+        for team in copy_list:
+            if team.getPoints() > largest_team.getPoints():
+                largest_team = team
+        copy_list.remove(largest_team)
+        sorted_list.append(largest_team)
+
+    for team in sorted_list:
+        team_names.append(team.getTeamName())
+        player_ones.append(team.getPlayerOne().getName())
+        player_twos.append(team.getPlayerTwo().getName())
+        points.append(team.getPoints())
+        pro_bids.append(team.getProBid())
+    data = [team_names, player_ones, player_twos, points, pro_bids]
+
+    wb = writeToSheet(data, wb, 'Pro Bids')
+    saveWorkBook(wb, filename)
+
+
+def mergeSort(players : list):
+    if len(players) == 0:
+        return []
+    elif len(players) == 1:
+        return [players[0]]
+    else:
+        index = int(len(players)/2)
+        left = mergeSort(players[:index])
+        right =  mergeSort(players[index:])
+        return merge(left, right)
     
 
-def writeTeamsSheet(wb):
-    sheets = wb.sheetnames
-    teams_sheet = getSheetByName(wb, 'Teams')
-    for name in sheets:
-        if (str(name).find("2022") != -1 and name != "Point Distribution 2022"):
-            sheet = wb[name]
-            teams = getTeamsFromTournament(sheet)
-            all_teams = getAllTeams(wb)
-            i = len(all_teams)
-            for team in teams:
-                skip = False
-                all_teams = getAllTeams(wb)
-                for team_check in all_teams:
-                    if (team_check[1] == team[1] and team_check[2] == team[2]):
-                        skip = True
-                        break    
-                    if (team_check[1] == team[2] and team_check[2] == team[1]):
-                        skip = True
-                        break
-                if (skip == True):
-                    continue
-                teams_sheet = writeToCell(i+2, 1, teams_sheet, team[0])
-                teams_sheet = writeToCell(i+2, 2, teams_sheet, team[1])
-                teams_sheet = writeToCell(i+2, 3, teams_sheet, team[2])
-                i += 1
-    return wb
+def merge(left : list, right : list):
+    l = 0
+    r = 0
+    sorted_list = []
+    while l < len(left) and r < len(right):
+        if left[l].getPoints() < right[r].getPoints():
+            sorted_list.append(right[r])
+            r += 1
+        else:
+            sorted_list.append(left[l])
+            l += 1
+    while l < len(left):
+        sorted_list.append(left[l])
+        l += 1
+    while r < len(right):
+        sorted_list.append(right[r])
+        r += 1
+    return sorted_list
 
 
-def writeTournamentSheet(wb, ranks, teams, points, sheetname):
-    if not sheetExists(wb, sheetname):
-        sheet = createSheet(wb, sheetname)
-        offset = 0
-    else:
-        sheet = getSheetByName(wb, sheetname)
-        offset = len(getColumnData(sheet, PLAYER_COL))
-
-    i = 1
-    sheet = writeToCell(1, RANK, sheet, 'Rank')
-    sheet = writeToCell(1, TEAM, sheet, 'Team')
-    sheet = writeToCell(1, PLAYER_ONE, sheet, 'Player One')
-    sheet = writeToCell(1, PLAYER_TWO, sheet, 'Player Two')
-    sheet = writeToCell(1, POINTS, sheet, 'Points Awarded')
-
-    while (i <= len(ranks)):
-        sheet = writeToCell(i+offset+1, RANK, sheet, ranks[i-1])
-        sheet = writeToCell(i+offset+1, TEAM, sheet, teams[0][i-1])
-        sheet = writeToCell(i+offset+1, PLAYER_ONE, sheet, teams[1][i-1])
-        sheet = writeToCell(i+offset+1, PLAYER_TWO, sheet, teams[2][i-1])
-        sheet = writeToCell(i+offset+1, POINTS, sheet, points[i-1])
-        i = i + 1
+def teamExists(team : Team):
+    for team_check in teams_list:
+        if team_equals(team_check, team):
+            return True
+    return False
 
 
-def writePlayersRankedSheet(wb):
-    players_sheet = getSheetByName(wb, 'Players')
-    sheet = getSheetByName(wb, 'Players Ranked')
-    players = getColumnData(players_sheet, PLAYER_COL)
-    points = getColumnData(players_sheet, POINTS_COL)
-    players, points = sortPlayers(players, points)
-    numPlayers = len(players)
-    for i in range(numPlayers):
-        sheet = writeToCell(i+2, 1, sheet, players[i])
-        sheet = writeToCell(i+2, 2, sheet, points[i])
-    return wb
+def getTeamIndex(team : Team):
+    for i in range(len(teams_list)):
+        team_check = teams_list[i]
+        if team_equals(team_check, team):
+            return i
+        
+
+def playerExists(player : Player):
+    for player_check in players_list:
+        if player_equals(player_check, player):
+            return True
+    return False
 
 
-def writeTeamsRankedSheet(wb):
-    sheet = getSheetByName(wb, 'Teams Ranked')
-    players_sheet = getSheetByName(wb, 'Players')
-    teams = getAllTeams(wb)
-    players = getColumnData(players_sheet, PLAYER_COL)
-    points = getColumnData(players_sheet, POINTS_COL)
+def getPlayerIndex(player : Player):
+    for i in range(len(players_list)):
+        player_check = players_list[i]
+        if player_equals(player_check, player):
+            return i
+        
 
-    teams, points = sortTeams(teams, players, points)
-    numTeams = len(teams)
-    for i in range(numTeams):
-        sheet = writeToCell(i+2, 1, sheet, teams[i][0])
-        sheet = writeToCell(i+2, 2, sheet, teams[i][1])
-        sheet = writeToCell(i+2, 3, sheet, teams[i][2])
-        sheet = writeToCell(i+2, 4, sheet, points[i])
-    return wb
+def tournamentExists(tournament : Tournament):
+    for tournament_check in tournaments_list:
+        if tournaments_equals(tournament_check, tournament):
+            return True
+    return False
+
+
+def getTournamentIndex(tournament : Tournament):
+    for i in range(len(tournaments_list)):
+        tournament_check = tournaments_list[i]
+        if tournaments_equals(tournament_check, tournament):
+            return i
 
 
 if __name__ == "__main__":
