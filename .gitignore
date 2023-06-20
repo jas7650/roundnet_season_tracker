@@ -1,3 +1,5 @@
 roundnet_tracking_2023.xlsx
 *.html
 __pycache__
+*.txt
+roundnet_season_tracker.xlsx
