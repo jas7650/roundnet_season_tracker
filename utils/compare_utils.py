@@ -9,8 +9,6 @@ def player_equals(player1 : Player, player2 : Player):
     return True
 
 def team_equals(team1 : Team, team2 : Team):
-    if team1.teamName != team2.teamName:
-        return False
     if team1.getPlayerOne().getName() not in team2.getPlayerNames():
         return False
     if team1.getPlayerTwo().getName() not in team2.getPlayerNames():

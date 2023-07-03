@@ -59,11 +59,11 @@ def getActualPoints(ranks, points):
     average = 0
     i = 0
     actual_points = []
-    if (len(ranks) != len(points)):
+    if len(ranks) != len(points):
         points = points[ranks[0]-1:]
-    while (i < len(ranks)):
+    while i < len(ranks):
         rank = ranks[i]
-        if (rank != previousRank):
+        if rank != previousRank:
             average = getAverageValue(ranks, points, i)
 
         actual_points.append(average)
@@ -73,13 +73,15 @@ def getActualPoints(ranks, points):
 
 
 def getAverageValue(ranks, points, index):
-    if (index == len(ranks)-1):
+    if index >= len(ranks) or index >= len(points):
+        return 0
+    if index == len(ranks)-1 or index == len(points)-1:
         return points[index]
     i = index+1
     numValues = 1
     sum = points[index]
 
-    while (ranks[i] == ranks[index]):
+    while ranks[i] == ranks[index]:
         sum += points[i]
         numValues += 1
         i += 1

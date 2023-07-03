@@ -45,6 +45,7 @@ def main():
     createPlayersSheet(filename)
     createTeamsSheet(filename)
     createProBidsSheet(filename)
+    createProPointsRaceSheet(filename)
     createTournamentSheets(filename)
     
     print(f"Seconds: {time.time() - start_time}")
@@ -113,8 +114,8 @@ def processTournament(path, year):
                 players_list[p1_index].addResult(ranks[i], 0, location)
                 players_list[p2_index].addResult(ranks[i], 0, location)
             else:
-                players_list[p1_index].addResult(ranks[i], points[i]/2.0, location)
-                players_list[p2_index].addResult(ranks[i], points[i]/2.0, location)
+                players_list[p1_index].addResult(ranks[i], points[i], location)
+                players_list[p2_index].addResult(ranks[i], points[i], location)
             
 
             team = Team(teams[0][i], player_one, player_two)
@@ -123,8 +124,9 @@ def processTournament(path, year):
                 teams_list.append(team)
                 
             team_index = getTeamIndex(team)
-
             teams_list[team_index].addResult(ranks[i], points[i], location)
+            if year == 2023:
+                teams_list[team_index].addResultPro(ranks[i], points[i], location)
             tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
         if tournament.getTournamentType() == TournamentType.MAJOR.value:
             if year == 2023:
@@ -224,30 +226,16 @@ def createProBidsSheet(filename : str):
     pro_bids_list = []
     sorted_list = []
 
-    copy_list = teams_list.copy()
+    sorted_list = sorted(teams_list, key=lambda x: x.getPointsPro(), reverse=True)
     for team in teams_list:
         if team.getProBid() == True:
             pro_bids_list.append(team)
-            copy_list.remove(team)
+            sorted_list.remove(team)
     remaining_spots = 16-len(pro_bids_list)
     for i in range(remaining_spots):
-        largest_team = copy_list[0]
-        for team in copy_list:
-            if team.getPoints() > largest_team.getPoints():
-                largest_team = team
-        copy_list.remove(largest_team)
-        pro_bids_list.append(largest_team)
+        pro_bids_list.append(sorted_list[i])
 
-    copy_list = pro_bids_list.copy()
-    for i in range(16):
-        largest_team = copy_list[0]
-        for team in copy_list:
-            if team.getPoints() > largest_team.getPoints():
-                largest_team = team
-        copy_list.remove(largest_team)
-        sorted_list.append(largest_team)
-
-    for team in sorted_list:
+    for team in pro_bids_list:
         team_names.append(team.getTeamName())
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
@@ -256,6 +244,26 @@ def createProBidsSheet(filename : str):
     data = [team_names, player_ones, player_twos, points, pro_bids]
 
     wb = writeToSheet(data, wb, 'Pro Bids')
+    saveWorkBook(wb, filename)
+
+
+def createProPointsRaceSheet(filename : str):
+    wb = getWorkBook(filename)
+    team_names = ['Team']
+    player_ones = ['Player One']
+    player_twos = ['Player Two']
+    points = ['Points']
+    sorted_list = []
+
+    sorted_list = sorted(teams_list, key = lambda x: x.getPointsPro(), reverse=True)
+    for team in sorted_list:
+        team_names.append(team.getTeamName())
+        player_ones.append(team.getPlayerOne().getName())
+        player_twos.append(team.getPlayerTwo().getName())
+        points.append(team.getPointsPro())
+    data = [team_names, player_ones, player_twos, points]
+
+    wb = writeToSheet(data, wb, 'Pro Points Race')
     saveWorkBook(wb, filename)
 
 
