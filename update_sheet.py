@@ -127,7 +127,13 @@ def processTournament(path, year):
             teams_list[team_index].addResult(ranks[i], points[i], location)
             if year == 2023:
                 teams_list[team_index].addResultPro(ranks[i], points[i], location)
-            tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
+            if location == "Richmond" and year == 2023:
+                if i < 32:
+                    tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
+                else:
+                    tournaments_list[tournaments_index].addResult(ranks[i], 0, teams_list[team_index])
+            else:
+                tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
         if tournament.getTournamentType() == TournamentType.MAJOR.value:
             if year == 2023:
                 top_three = tournament.getTopThree()
