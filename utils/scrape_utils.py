@@ -24,13 +24,23 @@ def scrapeFile(file):
     for tag in soup.find_all("div", attrs={"class":"players"}):
         text = str(tag.contents[0])
         index = text.find(' and ')
-        player_ones.append(text[:index])
+        player_ones.append(cleanName(text[:index]))
         text = text[index:]
         text = text[1:]
         index = text.find(' ')
-        player_twos.append(text[index+1:])
+        player_twos.append(cleanName(text[index+1:]))
         text = text[index+1:]
     return ranks, [teams, player_ones, player_twos]
+
+
+def cleanName(name : str):
+    cleaned_name = ''
+    name = name.replace("  ", " ")
+    names = name.split(" ")
+    for value in names:
+        cleaned_name += f"{value[0].upper()}{value[1:].lower()} "
+    cleaned_name = cleaned_name.strip(" ")
+    return cleaned_name
 
 
 # def scrapeWeb():
