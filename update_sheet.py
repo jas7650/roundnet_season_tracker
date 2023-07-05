@@ -37,8 +37,8 @@ def main():
     readYearDirectory(tourney_path, 2023)
     readYearDirectory(tourney_path, 2022)
 
-    players_list = mergeSort(players_list)    
-    teams_list = mergeSort(teams_list)
+    players_list = sorted(players_list, key=lambda x: x.getPoints(), reverse=True)
+    teams_list = sorted(teams_list, key=lambda x: x.getPoints(), reverse=True)
 
     filename = f'{os.getcwd()}/{file_name}/roundnet_season_tracker.xlsx'
 
@@ -255,6 +255,7 @@ def createProBidsSheet(filename : str):
 
 def createProPointsRaceSheet(filename : str):
     wb = getWorkBook(filename)
+    ranks = ['Rank']
     team_names = ['Team']
     player_ones = ['Player One']
     player_twos = ['Player Two']
@@ -262,12 +263,25 @@ def createProPointsRaceSheet(filename : str):
     sorted_list = []
 
     sorted_list = sorted(teams_list, key = lambda x: x.getPointsPro(), reverse=True)
+    team_num = 1
+    rank = 1
+    previous_points = 0
     for team in sorted_list:
+        if team.getPointsPro() == previous_points:
+            ranks.append(rank)
+        else:
+            ranks.append(team_num)
+            rank = team_num
+
         team_names.append(team.getTeamName())
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
         points.append(team.getPointsPro())
-    data = [team_names, player_ones, player_twos, points]
+
+        previous_points = team.getPointsPro()
+        team_num += 1
+
+    data = [ranks, team_names, player_ones, player_twos, points]
 
     wb = writeToSheet(data, wb, 'Pro Points Race')
     saveWorkBook(wb, filename)
