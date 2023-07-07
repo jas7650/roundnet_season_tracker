@@ -1,6 +1,9 @@
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+
+
+replace_name_dict = {"Gabriel Finocchi" : "Gabe Finocchi",
+                     "Paq Clifford" : "Anthony Clifford",
+                     "Trevor Clements 704trev" : "Trevor Clements"}
 
 
 def scrapeFile(file):
@@ -40,14 +43,6 @@ def cleanName(name : str):
     for value in names:
         cleaned_name += f"{value[0].upper()}{value[1:].lower()} "
     cleaned_name = cleaned_name.strip(" ")
+    if cleaned_name in replace_name_dict.keys():
+        cleaned_name = replace_name_dict[cleaned_name]
     return cleaned_name
-
-
-# def scrapeWeb():
-#     url = "https://fwango.io/dashboard"
-#     url = "https://www.geeksforgeeks.org/"
-#     driver = webdriver.Chrome()
-
-#     driver.get(url)
-#     element = driver.find_element(By.ID, "gsc-i-id1")
-#     element.send_keys("Arrays")

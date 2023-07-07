@@ -96,7 +96,7 @@ def processTournament(path, year):
         if division == "premier" and tournament_type == TournamentType.CHAMPIONSHIP.value:
             for i in range(len(ranks)):
                 ranks[i] += 16
-        points = getPoints(tournament_type, year, ranks, len(teams[0]))
+        points = getPoints(tournament_type, year, ranks, len(teams[0]), tournament.getLocation())
 
         for i in range(len(teams[0])):
             player_one = Player(teams[1][i])
@@ -110,9 +110,17 @@ def processTournament(path, year):
 
             p1_index = getPlayerIndex(player_one)
             p2_index = getPlayerIndex(player_two)
+            
             if i >= len(points):
                 players_list[p1_index].addResult(ranks[i], 0, location)
                 players_list[p2_index].addResult(ranks[i], 0, location)
+            elif location == "Richmond" and year == 2023:
+                if i < 32:
+                    players_list[p1_index].addResult(ranks[i], points[i], location)
+                    players_list[p2_index].addResult(ranks[i], points[i], location)
+                else:
+                    players_list[p1_index].addResult(ranks[i], 0, location)
+                    players_list[p2_index].addResult(ranks[i], 0, location)
             else:
                 players_list[p1_index].addResult(ranks[i], points[i], location)
                 players_list[p2_index].addResult(ranks[i], points[i], location)
