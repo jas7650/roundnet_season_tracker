@@ -268,6 +268,9 @@ def createProPointsRaceSheet(filename : str):
     player_ones = ['Player One']
     player_twos = ['Player Two']
     points = ['Points']
+    resultOnes = ['Result One']
+    resultTwos = ['Result Two']
+    resultThrees = ['Result Three']
     sorted_list = []
 
     sorted_list = sorted(teams_list, key = lambda x: x.getPointsPro(), reverse=True)
@@ -285,11 +288,14 @@ def createProPointsRaceSheet(filename : str):
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
         points.append(team.getPointsPro())
+        resultOnes.append(team.getResultOnePro())
+        resultTwos.append(team.getResultTwoPro())
+        resultThrees.append(team.getResultThreePro())
 
         previous_points = team.getPointsPro()
         team_num += 1
 
-    data = [ranks, team_names, player_ones, player_twos, points]
+    data = [ranks, team_names, player_ones, player_twos, points, resultOnes, resultTwos, resultThrees]
 
     wb = writeToSheet(data, wb, 'Pro Points Race')
     saveWorkBook(wb, filename)
