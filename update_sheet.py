@@ -18,6 +18,9 @@ POINTS = 5
 PLAYER_COL = 1
 POINTS_COL = 2
 
+CURRENT_YEAR = 2023
+PREVIOUS_YEAR = 2022
+
 
 def main():
     start_time = time.time()
@@ -32,10 +35,10 @@ def main():
     teams_list = []
     tournaments_list = []
    
-    tourney_path = os.path.join(os.getcwd(), file_name, "tournaments")
+    tourney_path = os.path.join(os.getcwd(), file_name, "tournaments/placements")
 
-    readYearDirectory(tourney_path, 2023)
-    readYearDirectory(tourney_path, 2022)
+    readYearDirectory(tourney_path, CURRENT_YEAR)
+    readYearDirectory(tourney_path, PREVIOUS_YEAR)
 
     players_list = sorted(players_list, key=lambda x: x.getPoints(), reverse=True)
     teams_list = sorted(teams_list, key=lambda x: x.getPoints(), reverse=True)
@@ -45,7 +48,8 @@ def main():
     createPlayersSheet(filename)
     createTeamsSheet(filename)
     createProBidsSheet(filename)
-    createProPointsRaceSheet(filename)
+    createProPointsRaceSheet(filename, PREVIOUS_YEAR)
+    createProPointsRaceSheet(filename, CURRENT_YEAR)
     createTournamentSheets(filename)
     
     print(f"Seconds: {time.time() - start_time}")
@@ -132,9 +136,7 @@ def processTournament(path, year):
                 teams_list.append(team)
                 
             team_index = getTeamIndex(team)
-            teams_list[team_index].addResult(ranks[i], points[i], location)
-            if year == 2023:
-                teams_list[team_index].addResultPro(ranks[i], points[i], location)
+            teams_list[team_index].addResult(ranks[i], points[i], location, year)
             if location == "Richmond" and year == 2023:
                 if i < 32:
                     tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
@@ -143,7 +145,7 @@ def processTournament(path, year):
             else:
                 tournaments_list[tournaments_index].addResult(ranks[i], points[i], teams_list[team_index])
         if tournament.getTournamentType() == TournamentType.MAJOR.value:
-            if year == 2023:
+            if year == CURRENT_YEAR:
                 top_three = tournament.getTopThree()
                 for team in top_three:
                     for i in range(len(teams_list)):
@@ -225,7 +227,7 @@ def createTeamsSheet(filename: str):
         tournament = tournaments_list[i]
         tournament_data = [tournament.getLocation()]
         for team in teams_list:
-            tournament_data.append(team.getResultByLocation(tournament.getLocation()))
+            tournament_data.append(team.getResultByLocation(tournament.getLocation(), tournament.getYear()))
         wb = writeToColumn(tournament_data, wb, 'Teams', i+7)
     saveWorkBook(wb, filename)
 
@@ -240,7 +242,7 @@ def createProBidsSheet(filename : str):
     pro_bids_list = []
     sorted_list = []
 
-    sorted_list = sorted(teams_list, key=lambda x: x.getPointsPro(), reverse=True)
+    sorted_list = sorted(teams_list, key=lambda x: x.getPointsYear(CURRENT_YEAR), reverse=True)
     for team in teams_list:
         if team.getProBid() == True:
             pro_bids_list.append(team)
@@ -253,7 +255,7 @@ def createProBidsSheet(filename : str):
         team_names.append(team.getTeamName())
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
-        points.append(team.getPoints())
+        points.append(team.getPointsYear(CURRENT_YEAR))
         pro_bids.append(team.getProBid())
     data = [team_names, player_ones, player_twos, points, pro_bids]
 
@@ -261,7 +263,7 @@ def createProBidsSheet(filename : str):
     saveWorkBook(wb, filename)
 
 
-def createProPointsRaceSheet(filename : str):
+def createProPointsRaceSheet(filename : str, year : int):
     wb = getWorkBook(filename)
     ranks = ['Rank']
     team_names = ['Team']
@@ -273,12 +275,12 @@ def createProPointsRaceSheet(filename : str):
     resultThrees = ['Result Three']
     sorted_list = []
 
-    sorted_list = sorted(teams_list, key = lambda x: x.getPointsPro(), reverse=True)
+    sorted_list = sorted(teams_list, key = lambda x: x.getPointsYear(year), reverse=True)
     team_num = 1
     rank = 1
     previous_points = 0
     for team in sorted_list:
-        if team.getPointsPro() == previous_points:
+        if team.getPointsYear(year) == previous_points:
             ranks.append(rank)
         else:
             ranks.append(team_num)
@@ -287,17 +289,17 @@ def createProPointsRaceSheet(filename : str):
         team_names.append(team.getTeamName())
         player_ones.append(team.getPlayerOne().getName())
         player_twos.append(team.getPlayerTwo().getName())
-        points.append(team.getPointsPro())
-        resultOnes.append(team.getResultOnePro())
-        resultTwos.append(team.getResultTwoPro())
-        resultThrees.append(team.getResultThreePro())
+        points.append(team.getPointsYear(year))
+        resultOnes.append(team.getResultOneYear(year))
+        resultTwos.append(team.getResultTwoYear(year))
+        resultThrees.append(team.getResultThreeYear(year))
 
-        previous_points = team.getPointsPro()
+        previous_points = team.getPointsYear(year)
         team_num += 1
 
     data = [ranks, team_names, player_ones, player_twos, points, resultOnes, resultTwos, resultThrees]
 
-    wb = writeToSheet(data, wb, 'Pro Points Race')
+    wb = writeToSheet(data, wb, f'Pro Points Race {year}')
     saveWorkBook(wb, filename)
 
 

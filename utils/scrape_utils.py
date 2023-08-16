@@ -1,9 +1,14 @@
+import sys
 from bs4 import BeautifulSoup
 
 
 replace_name_dict = {"Gabriel Finocchi" : "Gabe Finocchi",
                      "Paq Clifford" : "Anthony Clifford",
-                     "Trevor Clements 704trev" : "Trevor Clements"}
+                     "Trevor Clements 704trev" : "Trevor Clements",
+                     "Coleman Epperson's" : "Coleman Epperson",
+                     "Matt Morelli" : "Matthew Morelli",
+                     "Alex Hart (ASL)" : "Alex Hart",
+                     "Rob's Traveler" : "Rob Straveler"}
 
 
 def scrapeFile(file):
@@ -25,14 +30,13 @@ def scrapeFile(file):
     for tag in soup.find_all("div", attrs={"class":"team-name"}):
         teams.append(str(tag.contents[0]))
     for tag in soup.find_all("div", attrs={"class":"players"}):
-        text = str(tag.contents[0])
-        index = text.find(' and ')
-        player_ones.append(cleanName(text[:index]))
-        text = text[index:]
-        text = text[1:]
-        index = text.find(' ')
-        player_twos.append(cleanName(text[index+1:]))
-        text = text[index+1:]
+        text = str(tag.contents[0]).replace("  ", " ").replace(".", "")
+        players = text.split(" and ")
+        if len(players) > 2:
+            print(f"Fix format for: {players}")
+            sys.exit(0)
+        player_ones.append(cleanName(players[0]))
+        player_twos.append(cleanName(players[1]))
     return ranks, [teams, player_ones, player_twos]
 
 

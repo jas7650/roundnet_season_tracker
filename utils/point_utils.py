@@ -38,8 +38,12 @@ def getPoints(tounamentType : int, year : int, ranks : list, numTeams : int, loc
             return orlando_2022
         index = tounamentType
         points = []
+        i = 1
         for point in points_2022[index]:
+            # if tounamentType == TournamentType.MAJOR.value:
+            #     print(f"Rank: {i}, Points: {point/2.0}")
             points.append(point/2.0)
+            i += 1
         return getActualPoints(ranks, points)
     if year == 2023:
         if tounamentType == TournamentType.CHALLENGER.value:

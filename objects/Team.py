@@ -8,14 +8,17 @@ class Team(object):
         self.teamName = teamName
         self.players = [player_one, player_two]
         self.proBid = False
-        self.results = []
-        self.results_pro = []
+        self.results = {}
 
-    def addResult(self, rank : int, amount : int, location : str):
+    def addResult(self, rank : int, amount : int, location : str, year : int):
         index = 0
-        while index < len(self.results) and amount < self.results[index].getPoints():
-            index += 1
-        self.results.insert(index, Result(rank, amount, location))
+        if year in self.results.keys():
+            year_results = self.results[year]
+            while index < len(year_results) and amount < year_results[index].getPoints():
+                index += 1
+            self.results[year].insert(index, Result(rank, amount, location))
+        else:
+            self.results[year] = [Result(rank, amount, location)]
 
     def setProBid(self):
         self.proBid = True
@@ -30,55 +33,74 @@ class Team(object):
         return self.getResultOne() + self.getResultTwo() + self.getResultThree()
 
     def getResultOne(self):
-        if len(self.results) < 1:
+        results = []
+        for year in self.results.keys():
+            for result in self.results[year]:
+                results.append(result)
+        results = sorted(results, key=lambda x: x.getPoints(), reverse=True)
+        if len(results) < 1:
             return 0
-        return self.results[0].getPoints()
+        return results[0].getPoints()
 
     def getResultTwo(self):
-        if len(self.results) < 2:
+        results = []
+        for year in self.results.keys():
+            for result in self.results[year]:
+                results.append(result)
+        results = sorted(results, key=lambda x: x.getPoints(), reverse=True)
+        if len(results) < 2:
             return 0
-        return self.results[1].getPoints()
+        return results[1].getPoints()
 
     def getResultThree(self):
-        if len(self.results) < 3:
+        results = []
+        for year in self.results.keys():
+            for result in self.results[year]:
+                results.append(result)
+        results = sorted(results, key=lambda x: x.getPoints(), reverse=True)
+        if len(results) < 3:
             return 0
-        return self.results[2].getPoints()
+        return results[2].getPoints()
 
-    def getResultByLocation(self, location):
-        for result in self.results:
-            if result.getLocation() == location:
-                return result.getPoints()
+    def getResultByLocation(self, location, year):
+        if year in self.results.keys():
+            for result in self.results[year]:
+                if result.getLocation() == location:
+                    return result.getPoints()
         return 0
 
-    def getPointsPro(self):
-        return self.getResultOnePro() + self.getResultTwoPro() + self.getResultThreePro()
+    def getPointsYear(self, year : str):
+        return self.getResultOneYear(year) + self.getResultTwoYear(year) + self.getResultThreeYear(year)
 
-    def getResultOnePro(self):
-        if len(self.results_pro) < 1:
+    def getResultOneYear(self, year : int):
+        results = []
+        if year in self.results.keys():
+            for result in self.results[year]:
+                results.append(result)
+        results = sorted(results, key=lambda x: x.getPoints(), reverse=True)
+        if len(results) < 1:
             return 0
-        return self.results_pro[0].getPoints()
+        return results[0].getPoints()
 
-    def getResultTwoPro(self):
-        if len(self.results_pro) < 2:
+    def getResultTwoYear(self, year : int):
+        results = []
+        if year in self.results.keys():
+            for result in self.results[year]:
+                results.append(result)
+        results = sorted(results, key=lambda x: x.getPoints(), reverse=True)
+        if len(results) < 2:
             return 0
-        return self.results_pro[1].getPoints()
+        return results[1].getPoints()
 
-    def getResultThreePro(self):
-        if len(self.results_pro) < 3:
+    def getResultThreeYear(self, year : int):
+        results = []
+        if year in self.results.keys():
+            for result in self.results[year]:
+                results.append(result)
+        results = sorted(results, key=lambda x: x.getPoints(), reverse=True)
+        if len(results) < 3:
             return 0
-        return self.results_pro[2].getPoints()
-
-    def getResultByLocationPro(self, location):
-        for result in self.results_pro:
-            if result.getLocation() == location:
-                return result.getPoints()
-        return 0
-
-    def addResultPro(self, rank : int, amount : int, location : str):
-        index = 0
-        while index < len(self.results_pro) and amount < self.results_pro[index].getPoints():
-            index += 1
-        self.results_pro.insert(index, Result(rank, amount, location))
+        return results[2].getPoints()
 
     def getPlayerNames(self):
         return [self.getPlayerOne().getName(), self.getPlayerTwo().getName()]
